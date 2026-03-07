@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect x="0" y="0" width="1024" height="1024" fill="#d9d9d9"/>
+  <defs>
+    <clipPath id="cardClip">
+      <rect x="155" y="177" width="714" height="672" rx="60" ry="60"/>
+    </clipPath>
+    <linearGradient id="gYellow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd200"/>
+      <stop offset="100%" stop-color="#f4c400"/>
+    </linearGradient>
+    <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#42c2da"/>
+      <stop offset="100%" stop-color="#2ea0d5"/>
+    </linearGradient>
+    <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b24be0"/>
+      <stop offset="100%" stop-color="#8737cb"/>
+    </linearGradient>
+    <linearGradient id="gMagenta" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e40f75"/>
+      <stop offset="100%" stop-color="#d20563"/>
+    </linearGradient>
+    <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#34bc5d"/>
+      <stop offset="100%" stop-color="#2fad4f"/>
+    </linearGradient>
+    <linearGradient id="gBlueBottom" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f66b5"/>
+      <stop offset="100%" stop-color="#1a459c"/>
+    </linearGradient>
+    <linearGradient id="gRedBottom" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f30022"/>
+      <stop offset="100%" stop-color="#dd001d"/>
+    </linearGradient>
+    <linearGradient id="gDarkBottom" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#465068"/>
+      <stop offset="100%" stop-color="#303a52"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#cardClip)">
+    <rect x="155" y="177" width="148" height="430" fill="url(#gYellow)"/>
+    <rect x="303" y="177" width="139" height="430" fill="url(#gCyan)"/>
+    <rect x="442" y="177" width="140" height="430" fill="url(#gPurple)"/>
+    <rect x="582" y="177" width="139" height="430" fill="url(#gMagenta)"/>
+    <rect x="721" y="177" width="148" height="430" fill="url(#gGreen)"/>
+
+    <rect x="155" y="607" width="714" height="58" fill="#000000"/>
+
+    <rect x="155" y="665" width="236" height="184" fill="url(#gBlueBottom)"/>
+    <rect x="391" y="665" width="248" height="184" fill="url(#gRedBottom)"/>
+    <rect x="639" y="665" width="109" height="184" fill="#b2b6bf"/>
+    <rect x="748" y="665" width="121" height="184" fill="url(#gDarkBottom)"/>
+  </g>
+</svg>

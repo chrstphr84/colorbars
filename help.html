@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colorbars Help</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .back {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 8px 12px;
+        background: #fff;
+        cursor: pointer;
+      }
+      .card {
+        margin-top: 12px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 16px;
+      }
+      h1,
+      h2 {
+        margin: 0 0 8px;
+      }
+      p,
+      li {
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="top">
+        <h1>Colorbars Help</h1>
+        <button class="back" type="button" onclick="history.back()">Back</button>
+      </div>
+
+      <section class="card">
+        <h2>Overview</h2>
+        <p>
+          This extension shows a colored bar at the top of matching pages. Rules are evaluated with URL-component
+          precedence first and list order second.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Rule Matching</h2>
+        <ul>
+          <li>Domain Pattern mode accepts a single wildcard pattern. Example: <code>*.example.com/admin/*</code>.</li>
+          <li>If scheme is omitted in Domain Pattern mode, <code>https://</code> is assumed.</li>
+          <li>URL Components mode supports scheme/prefix, host, path, port, and query options.</li>
+          <li>Domain Pattern mode and URL Components mode are mutually exclusive to avoid conflicts.</li>
+          <li>When multiple rules match, earlier URL components take precedence (scheme, host, path, port, query).</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Styling</h2>
+        <ul>
+          <li>Per-rule text, colors, opacity, and font settings are supported.</li>
+          <li>Bar height is configurable per rule.</li>
+          <li>Bar placement can either overlay the page or push page content down.</li>
+          <li>Font size is constrained by bar height.</li>
+          <li>Letter spacing is constrained by available window width and updates on resize.</li>
+          <li>Built-in system fonts are available from the font dropdown.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Usage</h2>
+        <ul>
+          <li>Open extension options from <code>chrome://extensions</code>.</li>
+          <li>Add rules and collapse finished rules to keep the list compact.</li>
+          <li>Errors are shown as brief notifications and auto-hide after 1 second.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

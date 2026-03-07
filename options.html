@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Colorbars Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="row row-between row-wrap">
+        <div>
+          <h1>Colorbars Settings</h1>
+          <p class="intro">Add rules that control where the top bar appears and how it looks.</p>
+        </div>
+        <a class="help-link" href="help.html">Help</a>
+      </div>
+
+      <section class="card">
+        <div class="row row-between">
+          <h2>Rules</h2>
+          <button id="add-rule" type="button">Add Rule</button>
+        </div>
+        <div id="rules-list" class="rules-list"></div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <template id="rule-template">
+      <details class="rule" data-role="rule-shell">
+        <summary class="rule-summary">
+          <div class="rule-title" data-role="summary-title">New Rule</div>
+          <div class="rule-meta" data-role="summary-meta">Domain Pattern</div>
+        </summary>
+
+        <article class="rule-body">
+          <div class="row row-between row-top">
+            <label class="inline">
+              <input data-field="enabled" type="checkbox" />
+              Enabled
+            </label>
+            <button type="button" data-action="delete">Delete</button>
+          </div>
+
+          <label>
+            Rule Name
+            <input data-field="label" type="text" placeholder="Production Warning" />
+          </label>
+
+          <label>
+            Match Mode
+            <select data-field="matchType">
+              <option value="domain">Domain Pattern (single string)</option>
+              <option value="components">URL Components (scheme, host, path, port, query)</option>
+            </select>
+          </label>
+
+          <div class="domain-fields">
+            <label>
+              Domain Pattern
+              <input data-field="domainPattern" type="text" placeholder="*.example.com/admin/*" />
+            </label>
+            <label class="inline">
+              <input data-field="assumeWildcards" type="checkbox" />
+              Wildcards
+            </label>
+            <p class="hint">
+              <span data-role="wildcard-hint">
+                Wildcards <code>*</code> are assumed for any unassigned components.
+              </span>
+            </p>
+          </div>
+
+          <div class="component-fields">
+            <label>
+              Scheme/Prefix
+              <select data-field="scheme">
+                <option value="any">Any</option>
+                <option value="https">https</option>
+                <option value="http">http</option>
+                <option value="ftp">ftp</option>
+                <option value="vnc">vnc</option>
+              </select>
+            </label>
+
+            <label>
+              Host Pattern
+              <input data-field="hostPattern" type="text" placeholder="*.example.com" />
+            </label>
+
+            <label>
+              Host Prefix
+              <select data-field="hostPrefixMode">
+                <option value="any">Any</option>
+                <option value="specific">Specific Prefix</option>
+              </select>
+            </label>
+            <label class="prefix-value">
+              Prefix Value
+              <input data-field="hostPrefixValue" type="text" placeholder="api-" />
+            </label>
+
+            <label>
+              Path Pattern
+              <input data-field="pathPattern" type="text" placeholder="/v1/*" />
+            </label>
+
+            <label>
+              Port
+              <select data-field="portMode">
+                <option value="any">Any</option>
+                <option value="none">No explicit port</option>
+                <option value="specific">Specific Port</option>
+              </select>
+            </label>
+            <label class="port-value">
+              Port Value
+              <input data-field="portValue" type="number" min="1" max="65535" placeholder="8443" />
+            </label>
+
+            <label>
+              Query Rule
+              <select data-field="queryMode">
+                <option value="any">Any</option>
+                <option value="specific">Exact query string</option>
+                <option value="containsKey">Contains key</option>
+                <option value="containsPair">Contains key/value</option>
+              </select>
+            </label>
+            <label class="query-key">
+              Query Key
+              <input data-field="queryKey" type="text" placeholder="env" />
+            </label>
+            <label class="query-value">
+              Query Value
+              <input data-field="queryValue" type="text" placeholder="staging" />
+            </label>
+          </div>
+
+          <h3>Bar Appearance</h3>
+          <label>
+            Text
+            <input data-field="style.text" type="text" placeholder="STAGING" />
+          </label>
+          <div class="grid">
+            <label>
+              Bar Height (px)
+              <input data-field="barHeight" type="number" min="16" max="120" />
+            </label>
+            <label>
+              Page Placement
+              <select data-field="layoutMode">
+                <option value="push">Push page down</option>
+                <option value="overlay">Overlay page</option>
+              </select>
+            </label>
+          </div>
+          <div class="grid">
+            <label>
+              Background Color
+              <div class="color-field">
+                <input data-field="style.backgroundColor" type="color" />
+                <span class="swatch" data-role="bg-preview"></span>
+              </div>
+            </label>
+            <label>
+              Opacity (0-1)
+              <input data-field="style.backgroundOpacity" type="number" min="0" max="1" step="0.05" />
+            </label>
+            <label>
+              Text Color
+              <div class="color-field">
+                <input data-field="style.textColor" type="color" />
+                <span class="swatch" data-role="text-preview"></span>
+              </div>
+            </label>
+            <label>
+              Built-in Font
+              <select data-field="style.fontFamily">
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Helvetica, sans-serif">Helvetica</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="Tahoma, sans-serif">Tahoma</option>
+                <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+                <option value="Times New Roman, serif">Times New Roman</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="Garamond, serif">Garamond</option>
+                <option value="Palatino, serif">Palatino</option>
+                <option value="Courier New, monospace">Courier New</option>
+                <option value="Lucida Console, monospace">Lucida Console</option>
+                <option value="Impact, sans-serif">Impact</option>
+                <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+                <option value="system-ui, sans-serif">System UI</option>
+              </select>
+            </label>
+            <label>
+              Font Size (px)
+              <input data-field="style.fontSize" type="number" min="10" max="32" />
+            </label>
+            <label>
+              Font Weight
+              <input data-field="style.fontWeight" type="text" placeholder="700" />
+            </label>
+            <label>
+              Font Style
+              <select data-field="style.fontStyle">
+                <option value="normal">normal</option>
+                <option value="italic">italic</option>
+                <option value="oblique">oblique</option>
+              </select>
+            </label>
+            <label>
+              Text Transform
+              <select data-field="style.textTransform">
+                <option value="none">none</option>
+                <option value="uppercase">uppercase</option>
+                <option value="lowercase">lowercase</option>
+                <option value="capitalize">capitalize</option>
+              </select>
+            </label>
+            <label>
+              Letter Spacing (px)
+              <input data-field="style.letterSpacing" type="number" min="0" max="10" step="0.1" />
+            </label>
+          </div>
+        </article>
+      </details>
+    </template>
+
+    <script src="shared.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
