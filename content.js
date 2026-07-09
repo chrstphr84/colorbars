@@ -4,6 +4,52 @@ const HTML_PADDING_ATTR = "data-domain-top-bar-prev-padding-top";
 let appliedRule = null;
 const textMeasurer = document.createElement("canvas").getContext("2d");
 
+// Per-origin cache of Fleet /version lookups so each tab fetches at most once
+// per distinct token. state: "pending" | "ready" | "none".
+const fleetCache = new Map();
+
+function fleetCacheKey(token) {
+  return `${location.origin}::${token || ""}`;
+}
+
+async function fetchFleetInfo(token) {
+  // With a token, try the authenticated API first (works even when the public
+  // endpoint is blocked), then fall back to the unauthenticated /version.
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  const urls = token
+    ? [`${location.origin}/api/latest/fleet/version`, `${location.origin}/version`]
+    : [`${location.origin}/version`];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { headers, credentials: "omit", cache: "no-store" });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (isFleetVersionInfo(data)) return data;
+    } catch (_) {
+      // Network error / non-JSON: treat as "not a Fleet server here" and move on.
+    }
+  }
+  return null;
+}
+
+// Returns the cache entry for this token, kicking off a one-time fetch when the
+// origin has not been probed yet. onReady runs once the lookup resolves so the
+// caller can re-render with the now-known server info.
+function getFleetInfo(token, onReady) {
+  const key = fleetCacheKey(token);
+  const cached = fleetCache.get(key);
+  if (cached) return cached;
+
+  const entry = { state: "pending", info: null };
+  fleetCache.set(key, entry);
+  fetchFleetInfo(token).then((info) => {
+    fleetCache.set(key, { state: info ? "ready" : "none", info });
+    if (typeof onReady === "function") onReady();
+  });
+  return entry;
+}
+
 function clearPageOffset() {
   const html = document.documentElement;
   html.style.removeProperty("scroll-padding-top");
@@ -82,6 +128,65 @@ function constrainTypography(bar, style, barHeightPx) {
   bar.style.letterSpacing = `${Math.min(requestedSpacing, maxSpacing)}px`;
 }
 
+// Resolve every enabled segment of the rule into {justify, text} entries.
+// Fleet segments only produce text once their /version lookup has resolved as a
+// Fleet server; otherwise they render nothing (and never reserve space).
+function resolveSegments(rule, onFleetReady) {
+  const transform = (rule.style && rule.style.textTransform) || "none";
+  const resolved = [];
+  for (const seg of rule.segments || []) {
+    if (!seg || !seg.enabled) continue;
+    if (seg.type === "fleet") {
+      const entry = getFleetInfo(seg.token, onFleetReady);
+      if (entry.state === "ready") {
+        const text = formatFleetTemplate(seg.template, entry.info);
+        if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
+      }
+    } else {
+      const text = String(seg.text || "");
+      if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
+    }
+  }
+  return resolved;
+}
+
+function makeSegmentEl(text) {
+  const span = document.createElement("span");
+  span.className = "__cb_seg__";
+  span.textContent = text;
+  span.style.minWidth = "0";
+  span.style.overflow = "hidden";
+  span.style.textOverflow = "ellipsis";
+  span.style.whiteSpace = "nowrap";
+  return span;
+}
+
+// Lay the resolved segments out inside the bar. left/center/right become three
+// equal columns so the center stays truly centered and columns never overlap;
+// segments sharing a column stack horizontally in list order.
+function layoutSegments(bar, segments) {
+  bar.style.justifyContent = "space-between";
+  bar.style.gap = "0";
+  const zones = { left: null, center: null, right: null };
+  ["left", "center", "right"].forEach((name) => {
+    const zone = document.createElement("div");
+    zone.style.flex = "1 1 0";
+    zone.style.minWidth = "0";
+    zone.style.display = "flex";
+    zone.style.alignItems = "center";
+    zone.style.gap = "14px";
+    zone.style.overflow = "hidden";
+    zone.style.justifyContent =
+      name === "left" ? "flex-start" : name === "right" ? "flex-end" : "center";
+    bar.appendChild(zone);
+    zones[name] = zone;
+  });
+  segments.forEach((s) => {
+    const zone = zones[s.justify] || zones.center;
+    zone.appendChild(makeSegmentEl(s.text));
+  });
+}
+
 function applyRule(rule) {
   if (!rule) {
     removeBar();
@@ -89,7 +194,6 @@ function applyRule(rule) {
   }
 
   const barHeightPx = getBarHeight(rule);
-  const layoutMode = rule.layoutMode === "overlay" ? "overlay" : "push";
   const existing = document.getElementById(BAR_ID);
   if (existing) existing.remove();
   clearPageOffset();
@@ -97,9 +201,7 @@ function applyRule(rule) {
   const bar = document.createElement("div");
   bar.id = BAR_ID;
   const style = rule.style || {};
-  const textTransform = style.textTransform || "none";
 
-  bar.textContent = transformLabelText(style.text ?? "", textTransform);
   bar.style.position = "fixed";
   bar.style.top = "0";
   bar.style.left = "0";
@@ -111,7 +213,16 @@ function applyRule(rule) {
   bar.style.justifyContent = "center";
   bar.style.pointerEvents = "none";
   bar.style.background = parseColorWithOpacity(style.backgroundColor, style.backgroundOpacity);
-  bar.style.color = style.textColor || "#ffffff";
+  bar.style.color = parseColorWithOpacity(style.textColor, style.textOpacity);
+
+  // Blur the page behind the bar — only meaningful when the bar is translucent.
+  const opacity = Number(style.backgroundOpacity);
+  const blurPx = Number(style.blur);
+  if (Number.isFinite(blurPx) && blurPx > 0 && Number.isFinite(opacity) && opacity < 1) {
+    bar.style.backdropFilter = `blur(${blurPx}px)`;
+    bar.style.webkitBackdropFilter = `blur(${blurPx}px)`;
+  }
+
   bar.style.fontFamily = style.fontFamily || "Arial, sans-serif";
   bar.style.fontWeight = style.fontWeight || "700";
   bar.style.fontStyle = style.fontStyle || "normal";
@@ -123,15 +234,20 @@ function applyRule(rule) {
   bar.style.textShadow = "0 1px 1px rgba(0, 0, 0, 0.2)";
   bar.style.whiteSpace = "nowrap";
   bar.style.overflow = "hidden";
-  bar.style.textOverflow = "ellipsis";
+
+  // Re-render this same rule once a pending Fleet lookup resolves.
+  const segments = resolveSegments(rule, () => {
+    if (appliedRule && appliedRule.id === rule.id) applyRule(rule);
+  });
+  layoutSegments(bar, segments);
 
   const root = document.documentElement || document.body;
   if (!root) return;
 
   root.appendChild(bar);
-  if (layoutMode === "push") {
-    ensurePageOffset(barHeightPx);
-  }
+  // The bar always pushes page content down (and naturally overlays content as
+  // the page scrolls under the fixed bar).
+  ensurePageOffset(barHeightPx);
 
   appliedRule = rule;
   constrainTypography(bar, style, barHeightPx);
@@ -143,10 +259,42 @@ function evaluateAndApply(rules) {
   applyRule(matched);
 }
 
+let snoozeTimer = null;
+
 function loadAndApply() {
-  chrome.storage.sync.get([STORAGE_KEY], (items) => {
-    evaluateAndApply(items[STORAGE_KEY]);
-  });
+  chrome.storage.sync.get(
+    [STORAGE_KEY, GLOBAL_KEY, BLOCKLIST_KEY, SNOOZE_KEY],
+    (items) => {
+      if (snoozeTimer) {
+        clearTimeout(snoozeTimer);
+        snoozeTimer = null;
+      }
+
+      // Master off-switch.
+      if (items[GLOBAL_KEY] === false) {
+        removeBar();
+        return;
+      }
+
+      // Timed snooze: hide now, and re-evaluate when it expires (this tab only).
+      const snoozeUntil = Number(items[SNOOZE_KEY]) || 0;
+      const remaining = snoozeUntil - Date.now();
+      if (remaining > 0) {
+        removeBar();
+        snoozeTimer = setTimeout(loadAndApply, Math.min(remaining, 2147483647));
+        return;
+      }
+
+      // Domain blocklist.
+      const url = buildUrlForMatching(window.location.href);
+      if (url && isHostBlocked(items[BLOCKLIST_KEY], url.hostname)) {
+        removeBar();
+        return;
+      }
+
+      evaluateAndApply(items[STORAGE_KEY]);
+    }
+  );
 }
 
 loadAndApply();
@@ -155,8 +303,10 @@ if (document.readyState === "loading") {
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "sync" || !changes[STORAGE_KEY]) return;
-  evaluateAndApply(changes[STORAGE_KEY].newValue);
+  if (area !== "sync") return;
+  if (changes[STORAGE_KEY] || changes[GLOBAL_KEY] || changes[BLOCKLIST_KEY] || changes[SNOOZE_KEY]) {
+    loadAndApply();
+  }
 });
 
 window.addEventListener("resize", () => {

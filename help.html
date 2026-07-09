@@ -1,65 +1,60 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Colorbars Help</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f8fafc;
-        color: #0f172a;
-      }
-      main {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: 24px;
-      }
-      .top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .back {
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        padding: 8px 12px;
-        background: #fff;
-        cursor: pointer;
-      }
-      .card {
-        margin-top: 12px;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 16px;
-      }
-      h1,
-      h2 {
-        margin: 0 0 8px;
-      }
-      p,
-      li {
-        line-height: 1.45;
-      }
-    </style>
+    <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <main>
-      <div class="top">
-        <h1>Colorbars Help</h1>
-        <button class="back" type="button" onclick="history.back()">Back</button>
+    <main class="container">
+      <div class="row row-between row-wrap">
+        <div>
+          <h1>Colorbars Help</h1>
+          <p class="intro">How matching, styling, segments, and Fleet server detection work.</p>
+        </div>
+        <button class="secondary" type="button" id="back-btn">Back</button>
       </div>
 
       <section class="card">
         <h2>Overview</h2>
-        <p>
-          This extension shows a colored bar at the top of matching pages. Rules are evaluated with URL-component
-          precedence first and list order second.
+        <p class="intro">
+          This extension shows a colored bar at the top of matching pages. Rules are evaluated with
+          URL-component precedence first and list order second.
         </p>
+      </section>
+
+      <section class="card">
+        <h2>Toolbar Popup</h2>
+        <ul>
+          <li>Click the Colorbars toolbar icon for quick controls; it follows the theme set in Settings.</li>
+          <li><strong>All sites</strong> is the master switch — turning it off hides every bar everywhere.</li>
+          <li><strong>This page</strong> enables/disables the rule matching the current tab; it mirrors that rule's switch in Settings.</li>
+          <li>Disabling globally remembers each rule's state. Re-enabling — or turning on a rule from the popup or Settings — restores the previous states.</li>
+          <li>When a timed Snooze is active, the popup shows it with a <strong>Resume</strong> button.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Global Settings</h2>
+        <ul>
+          <li>Categories below are collapsible panels (like rules); each summary shows its current state.</li>
+          <li><strong>Enable all rules</strong> — the same master switch as the popup's "All sites".</li>
+          <li><strong>Snooze</strong> — temporarily hide all bars for 1 hour or until tomorrow; bars auto-return when the snooze ends.</li>
+          <li><strong>Default style for new rules</strong> — height, placement, colors, font, and transform applied to each newly-added rule.</li>
+          <li><strong>Domain blocklist</strong> — one domain per line where Colorbars never shows, even if a rule matches. Supports <code>*</code> wildcards; a bare domain also covers its subdomains.</li>
+          <li><strong>Show bar layout mock-up inside rules</strong> — toggles the in-rule drag-and-drop mock-up (moved here from Appearance).</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Theme</h2>
+        <ul>
+          <li>The settings page supports <strong>Light</strong>, <strong>Dark</strong>, and <strong>Auto</strong> themes.</li>
+          <li><strong>Auto</strong> follows your operating system appearance (light or dark) and switches live when the system setting changes.</li>
+          <li>The chosen theme is stored in <code>chrome.storage.sync</code> and applies to the settings and help pages.</li>
+        </ul>
       </section>
 
       <section class="card">
@@ -76,12 +71,47 @@
       <section class="card">
         <h2>Styling</h2>
         <ul>
-          <li>Per-rule text, colors, opacity, and font settings are supported.</li>
-          <li>Bar height is configurable per rule.</li>
-          <li>Bar placement can either overlay the page or push page content down.</li>
-          <li>Font size is constrained by bar height.</li>
+          <li>Per-rule Bar Color, Bar Opacity, Text Color, Text Opacity, and font settings are supported.</li>
+          <li><strong>Blur</strong> frosts the page behind the bar. It is available only when Bar Opacity is below 1 (a fully opaque bar has nothing to blur), and remembers its value if you disable then re-enable it.</li>
+          <li>Bar height is configurable per rule, and font size is constrained by bar height.</li>
+          <li>The bar pushes page content down, and naturally overlays content as the page scrolls beneath it.</li>
           <li>Letter spacing is constrained by available window width and updates on resize.</li>
-          <li>Built-in system fonts are available from the font dropdown.</li>
+          <li>Built-in system fonts are available from the Font dropdown.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Color Picker &amp; Swatches</h2>
+        <ul>
+          <li>The Background and Text color controls open a custom color picker.</li>
+          <li>The picker button itself shows the current color (with its hex value).</li>
+          <li>Pick a color with the saturation/brightness box and hue slider, or type a hex value.</li>
+          <li>Click <strong>+</strong> to save the current color as a swatch. Swatches are shared across all rules.</li>
+          <li>Click a swatch to apply it; <strong>shift-click</strong> a swatch to remove it.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Bar Text &amp; Segments</h2>
+        <ul>
+          <li>A rule's bar can contain multiple text elements ("segments"). Add as many as you need.</li>
+          <li>Each segment is placed <strong>Left</strong>, <strong>Center</strong>, or <strong>Right</strong>.</li>
+          <li>Segments are placed into independent zones and never overlap.</li>
+          <li>Segments sharing a zone stack horizontally, in list order.</li>
+          <li>Use the per-rule drag-and-drop mock-up to drag any segment (by its chip or the <code>⠿</code> handle) into a zone, and drag segments within a zone to reorder them.</li>
+          <li>Prefer dropdowns? Turn off <strong>Show bar layout mock-up inside rules</strong> in the Global section; each segment's <strong>Justification</strong> dropdown then sets its placement directly.</li>
+          <li>Tip: to show version and branch in different places, add two Fleet Server Info segments — e.g. one templated <code>{version}</code> on the left and another <code>{branch}</code> on the right.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Fleet Server Detection</h2>
+        <ul>
+          <li>Add a <strong>Fleet Server Info</strong> segment to show the running Fleet server's version and branch in the bar.</li>
+          <li>The extension detects a Fleet server on any domain by reading <code>&lt;origin&gt;/version</code> and checking its response shape, so the value can differ per tab.</li>
+          <li>The display template supports placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>, <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>.</li>
+          <li>The segment only renders on tabs whose server is detected as Fleet; otherwise it shows nothing.</li>
+          <li>An optional <strong>API token</strong> field is available for the authenticated <code>/api/latest/fleet/version</code> endpoint when the public <code>/version</code> is unavailable. The token field is masked and stored locally.</li>
         </ul>
       </section>
 
@@ -90,9 +120,17 @@
         <ul>
           <li>Open extension options from <code>chrome://extensions</code>.</li>
           <li>Add rules and collapse finished rules to keep the list compact.</li>
-          <li>Errors are shown as brief notifications and auto-hide after 1 second.</li>
+          <li>Errors are shown as brief notifications.</li>
         </ul>
       </section>
+
+      <section class="card help-section">
+        <a class="changelog-link" href="changelog.html">Changelog</a>
+        <span class="version-line" id="ext-version">Colorbars</span>
+      </section>
     </main>
+
+    <script src="shared.js"></script>
+    <script src="help.js"></script>
   </body>
 </html>

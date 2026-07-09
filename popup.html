@@ -1,41 +1,45 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Colorbars</title>
-    <style>
-      body {
-        margin: 0;
-        min-width: 220px;
-        font-family: Arial, sans-serif;
-        background: #f8fafc;
-        color: #0f172a;
-      }
-      main {
-        padding: 12px;
-      }
-      h1 {
-        margin: 0 0 10px;
-        font-size: 15px;
-      }
-      button {
-        width: 100%;
-        border: 1px solid #d1d5db;
-        background: #111827;
-        color: #ffffff;
-        padding: 8px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 13px;
-      }
-    </style>
+    <link rel="stylesheet" href="options.css" />
   </head>
-  <body>
-    <main>
-      <h1>Colorbars</h1>
-      <button id="open-options" type="button">Open Settings</button>
+  <body class="popup">
+    <main class="popup-main">
+      <div class="popup-head">
+        <h1>Colorbars</h1>
+      </div>
+
+      <div class="popup-row">
+        <div class="popup-text">
+          <div class="popup-label">All sites</div>
+          <div class="popup-sub">Show color bars on matching pages</div>
+        </div>
+        <input id="pp-global" class="switch" type="checkbox" />
+      </div>
+
+      <div class="popup-row" id="pp-page-row">
+        <div class="popup-text">
+          <div class="popup-label">This page</div>
+          <div class="popup-sub" id="pp-page-sub">—</div>
+        </div>
+        <input id="pp-page" class="switch" type="checkbox" />
+      </div>
+
+      <div class="popup-row" id="pp-snooze-row" style="display: none">
+        <div class="popup-text">
+          <div class="popup-label">Snoozed</div>
+          <div class="popup-sub" id="pp-snooze-sub">—</div>
+        </div>
+        <button id="pp-snooze-resume" type="button" class="secondary">Resume</button>
+      </div>
+
+      <button id="open-options" type="button" class="secondary popup-settings">Open Settings</button>
     </main>
+    <script src="shared.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

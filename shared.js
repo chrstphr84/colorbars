@@ -1,3 +1,32 @@
+// Placement options shared by every bar segment. Segments sharing a placement
+// stack horizontally in list order; the order can be changed by dragging.
+const JUSTIFY_VALUES = ["left", "center", "right"];
+
+// A plain text segment. The Bar Appearance "Text" of older rules migrates into
+// one of these.
+const DEFAULT_TEXT_SEGMENT = {
+  id: "",
+  type: "text",
+  enabled: true,
+  label: "Text",
+  text: "",
+  justify: "center"
+};
+
+// A dynamic segment that shows the version/branch of the Fleet server the tab
+// is pointed at. {version}, {branch}, {revision}, {go_version}, {build_date}
+// and {build_user} placeholders are substituted from the server's /version
+// response (or the authenticated API when a token is supplied).
+const DEFAULT_FLEET_SEGMENT = {
+  id: "",
+  type: "fleet",
+  enabled: false,
+  label: "Fleet server",
+  template: "Fleet {version} · {branch}",
+  token: "",
+  justify: "right"
+};
+
 const DEFAULT_RULE = {
   id: "",
   enabled: true,
@@ -18,20 +47,153 @@ const DEFAULT_RULE = {
   barHeight: "28",
   layoutMode: "push",
   style: {
-    text: "",
     backgroundColor: "#ff7a18",
     backgroundOpacity: "0.9",
+    blur: "0",
     textColor: "#ffffff",
+    textOpacity: "1",
     fontFamily: "Arial, sans-serif",
     fontSize: "14",
     fontWeight: "700",
     fontStyle: "normal",
     textTransform: "uppercase",
     letterSpacing: "0.6"
-  }
+  },
+  segments: [{ ...DEFAULT_TEXT_SEGMENT }]
 };
 
 const STORAGE_KEY = "domainTopBarRulesV1";
+const THEME_KEY = "colorbarsThemeV1";
+const SWATCHES_KEY = "colorbarsSwatchesV1";
+const MOCKUP_KEY = "colorbarsShowMockupV1";
+const GLOBAL_KEY = "colorbarsGlobalEnabledV1";
+const STASH_KEY = "colorbarsPrevEnabledV1";
+const DEFAULTSTYLE_KEY = "colorbarsDefaultRuleV1";
+const BLOCKLIST_KEY = "colorbarsBlocklistV1";
+const SNOOZE_KEY = "colorbarsSnoozeUntilV1";
+
+const THEME_VALUES = ["auto", "light", "dark"];
+
+// ---- Global enable/disable with non-destructive memory -------------------
+// A "state" here is { rules, globalEnabled, stash } where stash maps rule id ->
+// the enabled value it had before a global disable, so it can be restored.
+
+function restoreFromStash(state) {
+  const stash = state.stash && typeof state.stash === "object" ? state.stash : {};
+  state.rules.forEach((rule) => {
+    rule.enabled = rule.id in stash ? Boolean(stash[rule.id]) : true;
+  });
+  state.stash = {};
+}
+
+function setGlobalEnabled(state, on) {
+  on = Boolean(on);
+  if (on === state.globalEnabled) return state;
+  if (!on) {
+    // Stash current per-rule states, then flip every rule off so each rule's
+    // switch reflects the global disable.
+    const stash = {};
+    state.rules.forEach((rule) => {
+      stash[rule.id] = Boolean(rule.enabled);
+      rule.enabled = false;
+    });
+    state.stash = stash;
+    state.globalEnabled = false;
+  } else {
+    restoreFromStash(state);
+    state.globalEnabled = true;
+  }
+  return state;
+}
+
+function setRuleEnabled(state, ruleId, enabled) {
+  enabled = Boolean(enabled);
+  const rule = state.rules.find((r) => r.id === ruleId);
+  if (!rule) return state;
+  if (enabled && !state.globalEnabled) {
+    // Enabling any rule lifts a global disable: restore the others to their
+    // prior states and keep this one on.
+    restoreFromStash(state);
+    state.globalEnabled = true;
+    rule.enabled = true;
+  } else {
+    rule.enabled = enabled;
+  }
+  return state;
+}
+
+// ---- Default style for new rules -----------------------------------------
+function normalizeDefaults(raw) {
+  const base = {
+    barHeight: DEFAULT_RULE.barHeight,
+    layoutMode: DEFAULT_RULE.layoutMode,
+    style: structuredClone(DEFAULT_RULE.style)
+  };
+  if (raw && typeof raw === "object") {
+    if (raw.barHeight) base.barHeight = String(raw.barHeight);
+    if (["push", "overlay"].includes(raw.layoutMode)) base.layoutMode = raw.layoutMode;
+    if (raw.style && typeof raw.style === "object") {
+      base.style = { ...base.style, ...raw.style };
+      delete base.style.text;
+    }
+  }
+  return base;
+}
+
+// ---- Domain blocklist -----------------------------------------------------
+function isHostBlocked(blocklist, hostname) {
+  if (!Array.isArray(blocklist)) return false;
+  const host = String(hostname || "").toLowerCase();
+  if (!host) return false;
+  for (const raw of blocklist) {
+    const entry = String(raw || "").trim().toLowerCase();
+    if (!entry) continue;
+    if (entry.includes("*")) {
+      if (wildcardToRegExp(entry).test(host)) return true;
+    } else if (host === entry || host.endsWith(`.${entry}`)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function defaultSegmentForType(type) {
+  return type === "fleet"
+    ? structuredClone(DEFAULT_FLEET_SEGMENT)
+    : structuredClone(DEFAULT_TEXT_SEGMENT);
+}
+
+function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
+  const raw = rawSegment && typeof rawSegment === "object" ? rawSegment : {};
+  const type = raw.type === "fleet" ? "fleet" : "text";
+  const merged = { ...defaultSegmentForType(type), ...raw, type };
+  if (!merged.id) merged.id = `seg-${Date.now()}-${ruleIndex}-${segmentIndex}`;
+  merged.enabled = Boolean(merged.enabled);
+  merged.justify = JUSTIFY_VALUES.includes(merged.justify) ? merged.justify : "center";
+  merged.label = String(merged.label || (type === "fleet" ? "Fleet server" : "Text"));
+  if (type === "fleet") {
+    merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
+    merged.token = String(merged.token || "");
+    delete merged.text;
+  } else {
+    merged.text = String(merged.text ?? "");
+    delete merged.template;
+    delete merged.token;
+  }
+  return merged;
+}
+
+// Build the segments list for a rule, migrating legacy rules that only had a
+// single style.text value into one text segment.
+function normalizeSegments(rule, ruleIndex) {
+  let source = Array.isArray(rule && rule.segments) ? rule.segments : null;
+  if (!source) {
+    const legacyText = rule && rule.style ? rule.style.text : "";
+    source = [{ ...DEFAULT_TEXT_SEGMENT, text: legacyText || "" }];
+  }
+  const normalized = source.map((segment, i) => normalizeSegment(segment, ruleIndex, i));
+  return normalized.length > 0 ? normalized : [structuredClone(DEFAULT_TEXT_SEGMENT)];
+}
 
 function normalizeRules(rawRules) {
   if (!Array.isArray(rawRules)) return [];
@@ -44,6 +206,8 @@ function normalizeRules(rawRules) {
         ...(rule && rule.style ? rule.style : {})
       }
     };
+    delete merged.style.text; // legacy single-text field now lives in segments
+    merged.segments = normalizeSegments(rule, index);
     if (!merged.id) merged.id = `rule-${Date.now()}-${index}`;
     merged.enabled = Boolean(merged.enabled);
     merged.matchType = merged.matchType === "components" ? "components" : "domain";
@@ -86,6 +250,28 @@ function parseColorWithOpacity(hex, opacity) {
   const b = parseInt(clean.slice(5, 7), 16);
   const safeAlpha = Number.isFinite(alpha) ? Math.min(Math.max(alpha, 0), 1) : 1;
   return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+}
+
+// A /version (or authenticated API) response is considered a Fleet server when
+// it carries the well-known fields the Fleet version handler emits.
+function isFleetVersionInfo(info) {
+  if (!info || typeof info !== "object") return false;
+  return (
+    typeof info.version === "string" &&
+    typeof info.branch === "string" &&
+    typeof info.revision === "string" &&
+    typeof info.go_version === "string"
+  );
+}
+
+// Substitute {version}/{branch}/etc. placeholders in a fleet segment template.
+function formatFleetTemplate(template, info) {
+  const tpl = String(template || DEFAULT_FLEET_SEGMENT.template);
+  const safe = info && typeof info === "object" ? info : {};
+  return tpl.replace(/\{(version|branch|revision|go_version|build_date|build_user)\}/g, (_, key) => {
+    const value = safe[key];
+    return value === undefined || value === null ? "" : String(value);
+  });
 }
 
 function buildUrlForMatching(href) {
@@ -208,14 +394,14 @@ function componentPriority(rule) {
   return 5;
 }
 
-function findMatchingRule(rules, href) {
+function findMatchingRule(rules, href, includeDisabled = false) {
   const url = buildUrlForMatching(href);
   if (!url) return null;
 
   const matches = [];
   for (let i = 0; i < rules.length; i += 1) {
     const rule = rules[i];
-    if (!rule.enabled) continue;
+    if (!includeDisabled && !rule.enabled) continue;
 
     if (rule.matchType === "domain") {
       if (matchDomainRule(rule, url)) {

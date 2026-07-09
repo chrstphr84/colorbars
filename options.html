@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Colorbars Settings</title>
     <link rel="stylesheet" href="options.css" />
   </head>
@@ -17,11 +18,136 @@
       </div>
 
       <section class="card">
+        <div class="row row-between row-wrap">
+          <h2>Appearance</h2>
+          <div class="theme-row">
+            <span class="field-label">Theme</span>
+            <div class="theme-toggle" id="theme-toggle" role="group" aria-label="Theme">
+              <button type="button" data-theme-value="auto">Auto</button>
+              <button type="button" data-theme-value="light">Light</button>
+              <button type="button" data-theme-value="dark">Dark</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Global</h2>
+        <label class="inline" style="margin: 14px 0 4px">
+          <input id="global-toggle" class="switch" type="checkbox" />
+          Enable all rules
+        </label>
+
+        <div class="rules-list global-sections">
+          <details class="rule">
+            <summary class="rule-summary">
+              <div class="rule-title">Snooze</div>
+              <div class="rule-meta" id="snooze-meta">Not snoozed</div>
+            </summary>
+            <article class="rule-body">
+              <p class="hint">Temporarily hide all bars. They return automatically when the snooze ends.</p>
+              <div class="row" id="snooze-active" style="display: none">
+                <span class="intro" id="snooze-text">Snoozed</span>
+                <button type="button" class="secondary" id="snooze-resume">Resume now</button>
+              </div>
+              <div class="row" id="snooze-controls">
+                <button type="button" class="secondary" data-snooze="60">Snooze 1 hour</button>
+                <button type="button" class="secondary" data-snooze="tomorrow">Until tomorrow</button>
+              </div>
+            </article>
+          </details>
+
+          <details class="rule">
+            <summary class="rule-summary">
+              <div class="rule-title">Default style for new rules</div>
+              <div class="rule-meta">Applied to each rule you add</div>
+            </summary>
+            <article class="rule-body">
+              <div class="grid">
+                <label>
+                  Bar Color
+                  <div class="color-field" data-default-color="style.backgroundColor"></div>
+                </label>
+                <label>
+                  Bar Height (px)
+                  <input data-default-field="barHeight" type="number" min="16" max="120" />
+                </label>
+                <label>
+                  Text Color
+                  <div class="color-field" data-default-color="style.textColor"></div>
+                </label>
+                <label>
+                  Font
+                  <select data-default-field="style.fontFamily">
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Helvetica, sans-serif">Helvetica</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Tahoma, sans-serif">Tahoma</option>
+                    <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+                    <option value="Times New Roman, serif">Times New Roman</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Garamond, serif">Garamond</option>
+                    <option value="Palatino, serif">Palatino</option>
+                    <option value="Courier New, monospace">Courier New</option>
+                    <option value="Lucida Console, monospace">Lucida Console</option>
+                    <option value="Impact, sans-serif">Impact</option>
+                    <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+                    <option value="system-ui, sans-serif">System UI</option>
+                  </select>
+                </label>
+                <label>
+                  Text Transform
+                  <select data-default-field="style.textTransform">
+                    <option value="none">none</option>
+                    <option value="uppercase">uppercase</option>
+                    <option value="lowercase">lowercase</option>
+                    <option value="capitalize">capitalize</option>
+                  </select>
+                </label>
+              </div>
+            </article>
+          </details>
+
+          <details class="rule">
+            <summary class="rule-summary">
+              <div class="rule-title">Domain blocklist</div>
+              <div class="rule-meta" id="blocklist-meta">No domains</div>
+            </summary>
+            <article class="rule-body">
+              <p class="hint">
+                One domain per line. Colorbars never shows on these, regardless of matching rules. Supports
+                <code>*</code> wildcards; a bare domain also covers its subdomains.
+              </p>
+              <textarea id="blocklist" rows="3" spellcheck="false" placeholder="bank.com&#10;*.private.example.com"></textarea>
+            </article>
+          </details>
+
+          <details class="rule">
+            <summary class="rule-summary">
+              <div class="rule-title">Display</div>
+              <div class="rule-meta" id="mockup-meta">Mock-up shown</div>
+            </summary>
+            <article class="rule-body">
+              <label class="inline">
+                <input id="mockup-toggle" class="switch" type="checkbox" />
+                Show bar layout mock-up inside rules
+              </label>
+            </article>
+          </details>
+        </div>
+      </section>
+
+      <section class="card">
         <div class="row row-between">
           <h2>Rules</h2>
           <button id="add-rule" type="button">Add Rule</button>
         </div>
         <div id="rules-list" class="rules-list"></div>
+      </section>
+
+      <section class="card help-section">
+        <a class="changelog-link" href="changelog.html">Changelog</a>
+        <span class="version-line" id="ext-version">Colorbars</span>
       </section>
     </main>
 
@@ -37,10 +163,10 @@
         <article class="rule-body">
           <div class="row row-between row-top">
             <label class="inline">
-              <input data-field="enabled" type="checkbox" />
+              <input data-field="enabled" class="switch" type="checkbox" />
               Enabled
             </label>
-            <button type="button" data-action="delete">Delete</button>
+            <button type="button" class="danger" data-action="delete">Delete</button>
           </div>
 
           <label>
@@ -139,44 +265,32 @@
           </div>
 
           <h3>Bar Appearance</h3>
-          <label>
-            Text
-            <input data-field="style.text" type="text" placeholder="STAGING" />
-          </label>
           <div class="grid">
+            <!-- Row 1: Bar Color, Bar Height -->
+            <label>
+              Bar Color
+              <div class="color-field" data-color-field="style.backgroundColor"></div>
+            </label>
             <label>
               Bar Height (px)
               <input data-field="barHeight" type="number" min="16" max="120" />
             </label>
+            <div class="grid-spacer" aria-hidden="true"></div>
+
+            <!-- Row 2: Bar Opacity, Blur -->
             <label>
-              Page Placement
-              <select data-field="layoutMode">
-                <option value="push">Push page down</option>
-                <option value="overlay">Overlay page</option>
-              </select>
-            </label>
-          </div>
-          <div class="grid">
-            <label>
-              Background Color
-              <div class="color-field">
-                <input data-field="style.backgroundColor" type="color" />
-                <span class="swatch" data-role="bg-preview"></span>
-              </div>
-            </label>
-            <label>
-              Opacity (0-1)
+              Bar Opacity (0-1)
               <input data-field="style.backgroundOpacity" type="number" min="0" max="1" step="0.05" />
             </label>
             <label>
-              Text Color
-              <div class="color-field">
-                <input data-field="style.textColor" type="color" />
-                <span class="swatch" data-role="text-preview"></span>
-              </div>
+              Blur (px)
+              <input data-field="style.blur" type="number" min="0" max="50" step="1" />
             </label>
+            <div class="grid-spacer" aria-hidden="true"></div>
+
+            <!-- Row 3: Font, Font Size, Letter Spacing -->
             <label>
-              Built-in Font
+              Font
               <select data-field="style.fontFamily">
                 <option value="Arial, sans-serif">Arial</option>
                 <option value="Helvetica, sans-serif">Helvetica</option>
@@ -199,16 +313,31 @@
               <input data-field="style.fontSize" type="number" min="10" max="32" />
             </label>
             <label>
-              Font Weight
-              <input data-field="style.fontWeight" type="text" placeholder="700" />
+              Letter Spacing (px)
+              <input data-field="style.letterSpacing" type="number" min="0" max="10" step="0.1" />
+            </label>
+
+            <!-- Row 4: Text Color, Font Style, Font Weight -->
+            <label>
+              Text Color
+              <div class="color-field" data-color-field="style.textColor"></div>
             </label>
             <label>
               Font Style
               <select data-field="style.fontStyle">
                 <option value="normal">normal</option>
                 <option value="italic">italic</option>
-                <option value="oblique">oblique</option>
               </select>
+            </label>
+            <label>
+              Font Weight
+              <input data-field="style.fontWeight" type="text" placeholder="700" />
+            </label>
+
+            <!-- Row 5: Text Opacity, Text Transform -->
+            <label>
+              Text Opacity (0-1)
+              <input data-field="style.textOpacity" type="number" min="0" max="1" step="0.05" />
             </label>
             <label>
               Text Transform
@@ -219,13 +348,100 @@
                 <option value="capitalize">capitalize</option>
               </select>
             </label>
-            <label>
-              Letter Spacing (px)
-              <input data-field="style.letterSpacing" type="number" min="0" max="10" step="0.1" />
-            </label>
+            <div class="grid-spacer" aria-hidden="true"></div>
+          </div>
+
+          <h3>Bar Text</h3>
+          <p class="dnd-help" data-role="dnd-help">
+            Drag each text element into a zone to place it. Drag elements within a zone to reorder them.
+          </p>
+          <div class="dnd-bar" data-role="dnd-bar">
+            <div class="dnd-zone" data-zone="left"><span class="zone-label">Left</span></div>
+            <div class="dnd-zone" data-zone="center"><span class="zone-label">Center</span></div>
+            <div class="dnd-zone" data-zone="right"><span class="zone-label">Right</span></div>
+          </div>
+
+          <div class="segments" data-role="segments"></div>
+
+          <div class="row">
+            <button type="button" class="secondary" data-action="add-text">Add Text</button>
+            <button type="button" class="secondary" data-action="add-fleet">Add Fleet Server Info</button>
           </div>
         </article>
       </details>
+    </template>
+
+    <template id="text-segment-template">
+      <div class="segment" data-role="segment">
+        <div class="segment-head">
+          <span class="seg-drag" draggable="true" title="Drag to a zone">⠿</span>
+          <span class="seg-name" data-role="seg-name">Text</span>
+          <span class="seg-chip">Text</span>
+          <input data-seg-field="enabled" class="switch" type="checkbox" title="Enabled" />
+          <button type="button" class="danger" data-action="delete-segment">Delete</button>
+        </div>
+        <div class="segment-body">
+          <label>
+            Label
+            <input data-seg-field="label" type="text" placeholder="Text" />
+          </label>
+          <label>
+            Justification
+            <select data-seg-field="justify">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label class="full">
+            Text
+            <input data-seg-field="text" type="text" placeholder="STAGING" />
+          </label>
+        </div>
+      </div>
+    </template>
+
+    <template id="fleet-segment-template">
+      <div class="segment" data-role="segment">
+        <div class="segment-head">
+          <span class="seg-drag" draggable="true" title="Drag to a zone">⠿</span>
+          <span class="seg-name" data-role="seg-name">Fleet server</span>
+          <span class="seg-chip">Fleet</span>
+          <input data-seg-field="enabled" class="switch" type="checkbox" title="Enabled" />
+          <button type="button" class="danger" data-action="delete-segment">Delete</button>
+        </div>
+        <div class="segment-body">
+          <label>
+            Label
+            <input data-seg-field="label" type="text" placeholder="Fleet server" />
+          </label>
+          <label>
+            Justification
+            <select data-seg-field="justify">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label class="full">
+            Display Template
+            <input data-seg-field="template" type="text" placeholder="Fleet {version} · {branch}" />
+          </label>
+          <p class="hint">
+            Placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>,
+            <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>. Shows only on tabs
+            whose server is detected as Fleet (via <code>/version</code>).
+          </p>
+          <label class="full">
+            API Token (optional)
+            <input data-seg-field="token" type="password" autocomplete="off" placeholder="Bearer token for authenticated /api/latest/fleet/version" />
+          </label>
+          <p class="hint">
+            Only needed if the public <code>/version</code> endpoint is unavailable. Stored locally and never shown
+            in plain text.
+          </p>
+        </div>
+      </div>
     </template>
 
     <script src="shared.js"></script>

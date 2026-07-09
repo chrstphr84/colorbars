@@ -2,17 +2,27 @@ function genId() {
   return `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
 }
 
+function genSegId() {
+  return `seg-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
 const state = {
   rules: [],
-  openById: {}
+  openById: {},
+  globalEnabled: true,
+  stash: {},
+  defaults: null // set on load via normalizeDefaults
 };
 
 const listEl = document.getElementById("rules-list");
 const template = document.getElementById("rule-template");
+const textSegTemplate = document.getElementById("text-segment-template");
+const fleetSegTemplate = document.getElementById("fleet-segment-template");
 const addButton = document.getElementById("add-rule");
 const toastEl = document.getElementById("toast");
 let toastTimer = null;
 
+/* ----------------------------------------------------------------- Toast */
 function showToast(message, isError = false, durationMs = 1000) {
   if (!toastEl) return;
   toastEl.textContent = message;
@@ -24,6 +34,327 @@ function showToast(message, isError = false, durationMs = 1000) {
   }, durationMs);
 }
 
+/* ----------------------------------------------------------------- Theme */
+const themeToggle = document.getElementById("theme-toggle");
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+let themePref = "auto";
+
+function resolveTheme(pref) {
+  if (pref === "light" || pref === "dark") return pref;
+  return prefersDark.matches ? "dark" : "light";
+}
+
+function applyTheme() {
+  const resolved = resolveTheme(themePref);
+  document.documentElement.dataset.theme = resolved;
+  document.documentElement.style.colorScheme = resolved;
+  themeToggle.querySelectorAll("button").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.dataset.themeValue === themePref));
+  });
+}
+
+function setTheme(pref) {
+  themePref = THEME_VALUES.includes(pref) ? pref : "auto";
+  chrome.storage.sync.set({ [THEME_KEY]: themePref });
+  applyTheme();
+}
+
+// "Auto" tracks the OS preference live.
+prefersDark.addEventListener("change", () => {
+  if (themePref === "auto") applyTheme();
+});
+
+themeToggle.addEventListener("click", (event) => {
+  const btn = event.target.closest("button[data-theme-value]");
+  if (btn) setTheme(btn.dataset.themeValue);
+});
+
+/* ------------------------------------------------------ Mock-up toggle */
+const mockupToggle = document.getElementById("mockup-toggle");
+let showMockup = true;
+
+function applyMockupVisibility() {
+  document.body.classList.toggle("hide-mockup", !showMockup);
+  mockupToggle.checked = showMockup;
+  const mockupMeta = document.getElementById("mockup-meta");
+  if (mockupMeta) mockupMeta.textContent = showMockup ? "Mock-up shown" : "Mock-up hidden";
+}
+
+mockupToggle.addEventListener("change", () => {
+  showMockup = mockupToggle.checked;
+  chrome.storage.sync.set({ [MOCKUP_KEY]: showMockup });
+  applyMockupVisibility();
+});
+
+/* ------------------------------------------------------------- Swatches */
+const DEFAULT_SWATCHES = [
+  "#d62828",
+  "#ff7a18",
+  "#fcbf49",
+  "#2a9d8f",
+  "#1a73e8",
+  "#6f42c1",
+  "#202124",
+  "#ffffff"
+];
+const MAX_SWATCHES = 16;
+let swatches = [];
+const swatchTrayRefreshers = new Set();
+
+function loadSwatches(done) {
+  chrome.storage.sync.get([SWATCHES_KEY], (items) => {
+    const stored = items[SWATCHES_KEY];
+    swatches = Array.isArray(stored) && stored.length > 0 ? stored.slice(0, MAX_SWATCHES) : [...DEFAULT_SWATCHES];
+    if (typeof done === "function") done();
+  });
+}
+
+function persistSwatches() {
+  chrome.storage.sync.set({ [SWATCHES_KEY]: swatches });
+  swatchTrayRefreshers.forEach((fn) => fn());
+}
+
+function addSwatch(hex) {
+  const value = clampHex(hex);
+  if (swatches.includes(value)) return;
+  swatches.unshift(value);
+  if (swatches.length > MAX_SWATCHES) swatches.length = MAX_SWATCHES;
+  persistSwatches();
+}
+
+function removeSwatch(hex) {
+  swatches = swatches.filter((s) => s !== hex);
+  persistSwatches();
+}
+
+/* --------------------------------------------------------- Color helpers */
+function clampHex(hex) {
+  const v = String(hex || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : "#000000";
+}
+
+function hexToRgb(hex) {
+  const v = clampHex(hex);
+  return {
+    r: parseInt(v.slice(1, 3), 16),
+    g: parseInt(v.slice(3, 5), 16),
+    b: parseInt(v.slice(5, 7), 16)
+  };
+}
+
+function rgbToHex(r, g, b) {
+  const to = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+  return `#${to(r)}${to(g)}${to(b)}`;
+}
+
+function rgbToHsv(r, g, b) {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === rn) h = ((gn - bn) / d) % 6;
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const s = max === 0 ? 0 : d / max;
+  return { h, s, v: max };
+}
+
+function hsvToRgb(h, s, v) {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let rp = 0;
+  let gp = 0;
+  let bp = 0;
+  if (h < 60) [rp, gp, bp] = [c, x, 0];
+  else if (h < 120) [rp, gp, bp] = [x, c, 0];
+  else if (h < 180) [rp, gp, bp] = [0, c, x];
+  else if (h < 240) [rp, gp, bp] = [0, x, c];
+  else if (h < 300) [rp, gp, bp] = [x, 0, c];
+  else [rp, gp, bp] = [c, 0, x];
+  return { r: (rp + m) * 255, g: (gp + m) * 255, b: (bp + m) * 255 };
+}
+
+function hexToHsv(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHsv(r, g, b);
+}
+
+function hsvToHex(h, s, v) {
+  const { r, g, b } = hsvToRgb(h, s, v);
+  return rgbToHex(r, g, b);
+}
+
+/* ------------------------------------------------------- Color picker UI */
+// macOS-flavored popover: SV area + hue slider + hex field + saved swatches.
+// The trigger button itself shows the chosen color. onChange(hex) persists.
+function buildColorPicker(container, initialHex, onChange) {
+  container.innerHTML = "";
+  let hsv = hexToHsv(initialHex);
+  let currentHex = clampHex(initialHex);
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "cb-color-trigger";
+  const fill = document.createElement("span");
+  fill.className = "cb-color-fill";
+  const hexLabel = document.createElement("span");
+  hexLabel.className = "cb-color-hex";
+  trigger.append(fill, hexLabel);
+
+  const pop = document.createElement("div");
+  pop.className = "cb-color-pop";
+
+  const svBox = document.createElement("div");
+  svBox.className = "cb-sv";
+  const svThumb = document.createElement("div");
+  svThumb.className = "cb-sv-thumb";
+  svBox.appendChild(svThumb);
+
+  const hue = document.createElement("input");
+  hue.type = "range";
+  hue.className = "cb-hue";
+  hue.min = "0";
+  hue.max = "360";
+
+  const hexRow = document.createElement("div");
+  hexRow.className = "cb-hex-row";
+  const hexInput = document.createElement("input");
+  hexInput.type = "text";
+  hexInput.maxLength = 7;
+  hexInput.spellcheck = false;
+  hexRow.appendChild(hexInput);
+
+  const swatchLabel = document.createElement("div");
+  swatchLabel.className = "cb-swatches-label";
+  swatchLabel.textContent = "Saved swatches";
+
+  const tray = document.createElement("div");
+  tray.className = "cb-swatches";
+
+  pop.append(svBox, hue, hexRow, swatchLabel, tray);
+  container.append(trigger, pop);
+
+  function syncTrigger() {
+    fill.style.background = currentHex;
+    hexLabel.textContent = currentHex.toUpperCase();
+  }
+
+  function syncControls() {
+    svBox.style.backgroundColor = `hsl(${hsv.h}, 100%, 50%)`;
+    svThumb.style.left = `${hsv.s * 100}%`;
+    svThumb.style.top = `${(1 - hsv.v) * 100}%`;
+    hue.value = String(Math.round(hsv.h));
+    hexInput.value = currentHex.toUpperCase();
+  }
+
+  function commit(hex, fromHsv) {
+    currentHex = clampHex(hex);
+    if (!fromHsv) hsv = hexToHsv(currentHex);
+    syncTrigger();
+    syncControls();
+    onChange(currentHex);
+  }
+
+  function commitFromHsv() {
+    commit(hsvToHex(hsv.h, hsv.s, hsv.v), true);
+  }
+
+  function renderTray() {
+    tray.innerHTML = "";
+    swatches.forEach((sw) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cb-swatch";
+      btn.style.background = sw;
+      btn.dataset.removable = "true";
+      btn.title = `${sw} — click to use, shift-click to remove`;
+      btn.addEventListener("click", (e) => {
+        if (e.shiftKey) removeSwatch(sw);
+        else commit(sw, false);
+      });
+      tray.appendChild(btn);
+    });
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "cb-swatch add";
+    add.textContent = "+";
+    add.title = "Save current color";
+    add.addEventListener("click", () => addSwatch(currentHex));
+    tray.appendChild(add);
+  }
+  swatchTrayRefreshers.add(renderTray);
+
+  // SV box dragging.
+  function pickFromEvent(event) {
+    const rect = svBox.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+    hsv.s = x;
+    hsv.v = 1 - y;
+    commitFromHsv();
+  }
+  svBox.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    pickFromEvent(event);
+    const move = (e) => pickFromEvent(e);
+    const up = () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  });
+
+  hue.addEventListener("input", () => {
+    hsv.h = Number(hue.value);
+    commitFromHsv();
+  });
+
+  hexInput.addEventListener("input", () => {
+    const v = hexInput.value.trim();
+    if (/^#?[0-9a-fA-F]{6}$/.test(v)) {
+      commit(v.startsWith("#") ? v : `#${v}`, false);
+    }
+  });
+
+  trigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const willOpen = !pop.classList.contains("open");
+    closeAllColorPops();
+    if (willOpen) {
+      pop.classList.add("open");
+      renderTray();
+      syncControls();
+    }
+  });
+
+  syncTrigger();
+  syncControls();
+
+  return {
+    setHex(hex) {
+      commit(hex, false);
+    }
+  };
+}
+
+function closeAllColorPops() {
+  document.querySelectorAll(".cb-color-pop.open").forEach((p) => p.classList.remove("open"));
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".color-field")) closeAllColorPops();
+});
+
+/* ----------------------------------------------------------- Rule fields */
 function parsePath(obj, keyPath) {
   const parts = keyPath.split(".");
   let current = obj;
@@ -54,7 +385,7 @@ function coerceRule(rule) {
 function summaryMeta(rule) {
   if (rule.matchType === "domain") {
     const pattern = normalizeDomainPattern(rule.domainPattern || "", rule.assumeWildcards !== false);
-    return `${pattern || "Domain Pattern"} | ${rule.layoutMode}:${rule.barHeight}px`;
+    return `${pattern || "Domain Pattern"} | ${rule.barHeight}px`;
   }
 
   const bits = [];
@@ -64,7 +395,7 @@ function summaryMeta(rule) {
   if (rule.portMode === "specific" && (rule.portValue || "").trim()) bits.push(`port:${rule.portValue}`);
   if (rule.queryMode !== "any") bits.push(`query:${rule.queryMode}`);
   const base = bits.length > 0 ? bits.join(" | ") : "URL Components";
-  return `${base} | ${rule.layoutMode}:${rule.barHeight}px`;
+  return `${base} | ${rule.barHeight}px`;
 }
 
 function syncVisibility(root, rule) {
@@ -96,10 +427,15 @@ function syncVisibility(root, rule) {
         : 'Wildcards <code>*</code> must be entered manually for any desired components.';
   }
 
-  const preview = root.querySelector('[data-role="bg-preview"]');
-  preview.style.background = rule.style.backgroundColor || "#000000";
-  const textPreview = root.querySelector('[data-role="text-preview"]');
-  textPreview.style.background = rule.style.textColor || "#ffffff";
+  // Blur only applies to a translucent bar: disable it (and blank the field)
+  // at full opacity, while keeping the stored value to restore later.
+  const blurInput = root.querySelector('[data-field="style.blur"]');
+  if (blurInput) {
+    const opacity = Number(rule.style.backgroundOpacity);
+    const opaque = !(Number.isFinite(opacity) && opacity < 1);
+    blurInput.disabled = opaque;
+    blurInput.value = opaque ? "" : rule.style.blur ?? "";
+  }
 }
 
 function validateRule(rule) {
@@ -141,13 +477,188 @@ function save(showSavedToast = false) {
     }
   }
 
-  chrome.storage.sync.set({ [STORAGE_KEY]: next }, () => {
-    state.rules = next;
-    if (showSavedToast) showToast("Saved", false, 800);
+  chrome.storage.sync.set(
+    { [STORAGE_KEY]: next, [GLOBAL_KEY]: state.globalEnabled, [STASH_KEY]: state.stash },
+    () => {
+      state.rules = next;
+      if (showSavedToast) showToast("Saved", false, 800);
+    }
+  );
+}
+
+/* -------------------------------------------------------------- Segments */
+function segmentDisplayText(seg) {
+  if (seg.label && seg.label.trim()) return seg.label.trim();
+  if (seg.type === "fleet") return seg.template || "Fleet server";
+  return seg.text || "Text";
+}
+
+function renderDnd(shell, rule) {
+  const bar = shell.querySelector('[data-role="dnd-bar"]');
+  bar.querySelectorAll(".dnd-chip").forEach((c) => c.remove());
+
+  rule.segments.forEach((seg) => {
+    if (!seg.enabled) return;
+    const zone = bar.querySelector(`.dnd-zone[data-zone="${seg.justify}"]`) || bar.querySelector('[data-zone="center"]');
+    const chip = document.createElement("div");
+    chip.className = "dnd-chip";
+    chip.draggable = true;
+    chip.dataset.segId = seg.id;
+    const text = document.createElement("span");
+    text.className = "chip-text";
+    text.textContent = segmentDisplayText(seg);
+    chip.appendChild(text);
+    chip.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", seg.id);
+      e.dataTransfer.effectAllowed = "move";
+      chip.classList.add("dragging");
+    });
+    chip.addEventListener("dragend", () => chip.classList.remove("dragging"));
+    zone.appendChild(chip);
+  });
+
+  // Hide a zone's label while it holds chips (prevents the label from shifting
+  // chips around); show it again when the zone is empty.
+  bar.querySelectorAll(".dnd-zone").forEach((zone) => {
+    zone.classList.toggle("has-items", zone.querySelector(".dnd-chip") !== null);
   });
 }
 
+// The segment id, before which a drop should insert, given a horizontal x
+// position within a zone. Returns null to append at the end of the zone.
+function refChipBefore(zone, clientX, draggedId) {
+  const chips = [...zone.querySelectorAll(".dnd-chip")].filter((c) => c.dataset.segId !== draggedId);
+  for (const chip of chips) {
+    const r = chip.getBoundingClientRect();
+    if (clientX < r.left + r.width / 2) return chip.dataset.segId;
+  }
+  return null;
+}
+
+// Move a segment into a zone, positioned before refSegId (or appended to the
+// zone's group when refSegId is null). Reorders within the segments array so
+// stacking order follows the drop position.
+function placeSegment(idx, draggedId, zone, refSegId) {
+  if (!JUSTIFY_VALUES.includes(zone)) return;
+  const arr = state.rules[idx].segments;
+  const dragged = arr.find((s) => s.id === draggedId);
+  if (!dragged || draggedId === refSegId) return;
+
+  arr.splice(arr.indexOf(dragged), 1);
+  dragged.justify = zone;
+
+  let insertAt;
+  if (refSegId) {
+    insertAt = arr.findIndex((s) => s.id === refSegId);
+  } else {
+    // Append after the last segment already in this zone, else at the end.
+    let last = -1;
+    arr.forEach((s, i) => {
+      if (s.justify === zone) last = i;
+    });
+    insertAt = last === -1 ? arr.length : last + 1;
+  }
+  if (insertAt < 0) insertAt = arr.length;
+  arr.splice(insertAt, 0, dragged);
+
+  save(false);
+  render();
+}
+
+function renderSegments(shell, rule, idx) {
+  const container = shell.querySelector('[data-role="segments"]');
+  container.innerHTML = "";
+
+  rule.segments.forEach((seg, segIdx) => {
+    const tpl = seg.type === "fleet" ? fleetSegTemplate : textSegTemplate;
+    const frag = tpl.content.cloneNode(true);
+    const segEl = frag.querySelector('[data-role="segment"]');
+    const nameEl = segEl.querySelector('[data-role="seg-name"]');
+    nameEl.textContent = segmentDisplayText(seg);
+
+    segEl.querySelectorAll("[data-seg-field]").forEach((input) => {
+      const field = input.getAttribute("data-seg-field");
+      const value = seg[field];
+      if (input.type === "checkbox") input.checked = Boolean(value);
+      else input.value = value ?? "";
+
+      input.addEventListener("input", () => {
+        state.rules[idx].segments[segIdx][field] = typedValue(input);
+        if (field === "label" || field === "text" || field === "template") {
+          nameEl.textContent = segmentDisplayText(state.rules[idx].segments[segIdx]);
+          renderDnd(shell, state.rules[idx]);
+        }
+        if (field === "justify" || field === "enabled") {
+          renderDnd(shell, state.rules[idx]);
+        }
+        save(false);
+      });
+    });
+
+    segEl.querySelector('[data-action="delete-segment"]').addEventListener("click", () => {
+      state.rules[idx].segments.splice(segIdx, 1);
+      render();
+      save(true);
+    });
+
+    // Drag handle lets the whole segment be dropped into a zone.
+    const handle = segEl.querySelector(".seg-drag");
+    handle.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", seg.id);
+    });
+
+    container.appendChild(frag);
+  });
+
+  // Wire drop zones (drop into a zone, and reorder within a zone).
+  const bar = shell.querySelector('[data-role="dnd-bar"]');
+  function clearInsertMarks() {
+    bar.querySelectorAll(".insert-before").forEach((c) => c.classList.remove("insert-before"));
+  }
+  shell.querySelectorAll(".dnd-zone").forEach((zone) => {
+    zone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      zone.classList.add("drag-over");
+      const dragging = bar.querySelector(".dnd-chip.dragging");
+      const draggedId = dragging ? dragging.dataset.segId : null;
+      const ref = refChipBefore(zone, e.clientX, draggedId);
+      clearInsertMarks();
+      if (ref) {
+        const refChip = zone.querySelector(`.dnd-chip[data-seg-id="${ref}"]`);
+        if (refChip) refChip.classList.add("insert-before");
+      }
+    });
+    zone.addEventListener("dragleave", () => {
+      zone.classList.remove("drag-over");
+      clearInsertMarks();
+    });
+    zone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const segId = e.dataTransfer.getData("text/plain");
+      const ref = refChipBefore(zone, e.clientX, segId);
+      clearInsertMarks();
+      if (segId) placeSegment(idx, segId, zone.dataset.zone, ref);
+    });
+  });
+
+  renderDnd(shell, rule);
+}
+
+function addSegment(idx, type) {
+  const base = type === "fleet" ? structuredClone(DEFAULT_FLEET_SEGMENT) : structuredClone(DEFAULT_TEXT_SEGMENT);
+  base.id = genSegId();
+  base.enabled = true;
+  state.rules[idx].segments.push(base);
+  render();
+  save(true);
+}
+
+/* ---------------------------------------------------------------- Render */
 function render() {
+  closeAllColorPops();
+  swatchTrayRefreshers.clear();
   listEl.innerHTML = "";
 
   state.rules.forEach((rule, idx) => {
@@ -167,8 +678,27 @@ function render() {
       else input.value = value ?? "";
 
       input.addEventListener("input", () => {
+        if (field === "enabled") {
+          // Routes through the shared helper so enabling a rule while globally
+          // disabled lifts the global disable and restores the other rules.
+          setRuleEnabled(state, state.rules[idx].id, input.checked);
+          renderGlobalSection();
+          render();
+          save(false);
+          return;
+        }
         setPath(state.rules[idx], field, typedValue(input));
         syncVisibility(shell, state.rules[idx]);
+        save(false);
+      });
+    });
+
+    // Custom color pickers (background + text color).
+    shell.querySelectorAll("[data-color-field]").forEach((container) => {
+      const path = container.getAttribute("data-color-field");
+      const current = parsePath(rule, path) || "#000000";
+      buildColorPicker(container, current, (hex) => {
+        setPath(state.rules[idx], path, hex);
         save(false);
       });
     });
@@ -179,23 +709,156 @@ function render() {
       save(true);
     });
 
+    shell.querySelector('[data-action="add-text"]').addEventListener("click", () => addSegment(idx, "text"));
+    shell.querySelector('[data-action="add-fleet"]').addEventListener("click", () => addSegment(idx, "fleet"));
+
     syncVisibility(shell, rule);
+    renderSegments(shell, rule, idx);
     listEl.appendChild(fragment);
   });
 }
 
 function load() {
-  chrome.storage.sync.get([STORAGE_KEY], (items) => {
-    state.rules = normalizeRules(items[STORAGE_KEY]);
+  chrome.storage.sync.get(
+    [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, DEFAULTSTYLE_KEY, BLOCKLIST_KEY, SNOOZE_KEY],
+    (items) => {
+      state.rules = normalizeRules(items[STORAGE_KEY]);
+      state.globalEnabled = items[GLOBAL_KEY] !== false;
+      state.stash = items[STASH_KEY] && typeof items[STASH_KEY] === "object" ? items[STASH_KEY] : {};
+      state.defaults = normalizeDefaults(items[DEFAULTSTYLE_KEY]);
+      globalState.blocklist = Array.isArray(items[BLOCKLIST_KEY]) ? items[BLOCKLIST_KEY] : [];
+      globalState.snoozeUntil = Number(items[SNOOZE_KEY]) || 0;
+      initGlobalSection();
+      render();
+    }
+  );
+}
+
+/* ----------------------------------------------------- Global section */
+const globalState = { blocklist: [], snoozeUntil: 0 };
+const globalToggle = document.getElementById("global-toggle");
+const snoozeActive = document.getElementById("snooze-active");
+const snoozeControls = document.getElementById("snooze-controls");
+const snoozeText = document.getElementById("snooze-text");
+const snoozeMeta = document.getElementById("snooze-meta");
+const blocklistEl = document.getElementById("blocklist");
+const blocklistMeta = document.getElementById("blocklist-meta");
+let globalInited = false;
+let snoozeTick = null;
+
+function updateBlocklistMeta() {
+  const n = globalState.blocklist.length;
+  blocklistMeta.textContent = n === 0 ? "No domains" : `${n} domain${n === 1 ? "" : "s"}`;
+}
+
+function renderGlobalSection() {
+  globalToggle.checked = state.globalEnabled;
+
+  const snoozed = globalState.snoozeUntil > Date.now();
+  snoozeActive.style.display = snoozed ? "flex" : "none";
+  snoozeControls.style.display = snoozed ? "none" : "flex";
+  if (snoozed) {
+    const t = new Date(globalState.snoozeUntil).toLocaleString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      month: "short",
+      day: "numeric"
+    });
+    snoozeText.textContent = `Snoozed until ${t}`;
+    snoozeMeta.textContent = `Until ${t}`;
+  } else {
+    snoozeMeta.textContent = "Not snoozed";
+  }
+}
+
+function setSnooze(until) {
+  globalState.snoozeUntil = until;
+  chrome.storage.sync.set({ [SNOOZE_KEY]: until });
+  renderGlobalSection();
+  scheduleSnoozeTick();
+}
+
+function scheduleSnoozeTick() {
+  if (snoozeTick) clearTimeout(snoozeTick);
+  const remaining = globalState.snoozeUntil - Date.now();
+  if (remaining > 0) snoozeTick = setTimeout(renderGlobalSection, Math.min(remaining + 500, 2147483647));
+}
+
+function initGlobalSection() {
+  renderGlobalSection();
+  scheduleSnoozeTick();
+  if (globalInited) {
+    blocklistEl.value = globalState.blocklist.join("\n");
+    return;
+  }
+  globalInited = true;
+
+  globalToggle.addEventListener("change", () => {
+    setGlobalEnabled(state, globalToggle.checked);
     render();
+    save(true);
+  });
+
+  document.querySelectorAll("[data-snooze]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const kind = btn.getAttribute("data-snooze");
+      let until;
+      if (kind === "tomorrow") {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        until = d.getTime() + 24 * 60 * 60 * 1000;
+      } else {
+        until = Date.now() + Number(kind) * 60 * 1000;
+      }
+      setSnooze(until);
+    });
+  });
+  document.getElementById("snooze-resume").addEventListener("click", () => setSnooze(0));
+
+  // Default-style fields + color pickers (bound to state.defaults).
+  document.querySelectorAll("[data-default-field]").forEach((input) => {
+    const path = input.getAttribute("data-default-field");
+    input.value = parsePath(state.defaults, path) ?? "";
+    input.addEventListener("input", () => {
+      setPath(state.defaults, path, input.value);
+      chrome.storage.sync.set({ [DEFAULTSTYLE_KEY]: state.defaults });
+    });
+  });
+  document.querySelectorAll("[data-default-color]").forEach((container) => {
+    const path = container.getAttribute("data-default-color");
+    buildColorPicker(container, parsePath(state.defaults, path) || "#000000", (hex) => {
+      setPath(state.defaults, path, hex);
+      chrome.storage.sync.set({ [DEFAULTSTYLE_KEY]: state.defaults });
+    });
+  });
+
+  blocklistEl.value = globalState.blocklist.join("\n");
+  updateBlocklistMeta();
+  blocklistEl.addEventListener("input", () => {
+    globalState.blocklist = blocklistEl.value
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    chrome.storage.sync.set({ [BLOCKLIST_KEY]: globalState.blocklist });
+    updateBlocklistMeta();
   });
 }
 
 addButton.addEventListener("click", () => {
+  // Adding a rule implies wanting bars again, so lift any global disable first.
+  if (!state.globalEnabled) {
+    setGlobalEnabled(state, true);
+    renderGlobalSection();
+  }
+  const defaults = state.defaults || normalizeDefaults(null);
   const rule = {
     ...structuredClone(DEFAULT_RULE),
     id: genId(),
-    label: `Rule ${state.rules.length + 1}`
+    label: `Rule ${state.rules.length + 1}`,
+    barHeight: defaults.barHeight,
+    layoutMode: defaults.layoutMode,
+    style: structuredClone(defaults.style),
+    segments: [{ ...structuredClone(DEFAULT_TEXT_SEGMENT), id: genSegId() }]
   };
   state.rules.push(rule);
   state.openById[rule.id] = true;
@@ -203,4 +866,29 @@ addButton.addEventListener("click", () => {
   save(true);
 });
 
-load();
+/* ------------------------------------------------------------- Bootstrap */
+const versionEl = document.getElementById("ext-version");
+if (versionEl) {
+  const manifest = chrome.runtime.getManifest();
+  versionEl.textContent = `Colorbars v${manifest.version}`;
+}
+
+loadTheme();
+loadMockupPref();
+loadSwatches(() => {
+  load();
+});
+
+function loadTheme() {
+  chrome.storage.sync.get([THEME_KEY], (items) => {
+    themePref = THEME_VALUES.includes(items[THEME_KEY]) ? items[THEME_KEY] : "auto";
+    applyTheme();
+  });
+}
+
+function loadMockupPref() {
+  chrome.storage.sync.get([MOCKUP_KEY], (items) => {
+    showMockup = items[MOCKUP_KEY] !== false; // default on
+    applyMockupVisibility();
+  });
+}

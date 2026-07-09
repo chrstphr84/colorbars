@@ -14,10 +14,12 @@ chrome.runtime.onInstalled.addListener(() => {
           domainPattern: "*.staging.example.com/*",
           style: {
             ...structuredClone(DEFAULT_RULE.style),
-            text: "STAGING",
             backgroundColor: "#d62828",
             backgroundOpacity: "0.85"
-          }
+          },
+          segments: [
+            { ...structuredClone(DEFAULT_TEXT_SEGMENT), id: `seg-${Date.now()}`, text: "STAGING" }
+          ]
         }
       ]
     });
