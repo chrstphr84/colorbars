@@ -37,6 +37,45 @@
         <button id="pp-snooze-resume" type="button" class="secondary">Resume</button>
       </div>
 
+      <!-- Quick "create rule from this page" (collapsed by default) -->
+      <button id="pp-create-toggle" type="button" class="secondary popup-settings">
+        Create rule for this page
+      </button>
+
+      <div class="popup-form" id="pp-panel" hidden>
+        <!-- Shown when NO rule covers the page -->
+        <div class="pp-group" id="pp-create-fields" hidden>
+          <label>
+            Rule name
+            <input id="pp-name" type="text" autocomplete="off" />
+          </label>
+          <label>
+            Bar text
+            <input id="pp-text" type="text" autocomplete="off" placeholder="STAGING" />
+            <span class="pp-error" id="pp-text-error" hidden>Enter bar text to create the rule.</span>
+          </label>
+          <div class="pp-field">
+            <span class="pp-field-label">Color</span>
+            <div class="pp-swatches" id="pp-swatches"></div>
+          </div>
+          <label class="inline">
+            <input id="pp-wild" class="switch" type="checkbox" checked />
+            Match all pages on this domain
+          </label>
+          <p class="hint pp-truncate" id="pp-pattern"></p>
+        </div>
+
+        <!-- Shown when a rule ALREADY covers the page -->
+        <p class="hint pp-truncate" id="pp-exists-msg" hidden></p>
+
+        <!-- Shown right after a rule is created -->
+        <div class="pp-group" id="pp-done-block" hidden>
+          <div class="pp-done-preview pp-truncate" id="pp-done-preview">TEXT</div>
+          <p class="hint pp-truncate" id="pp-done-msg"></p>
+        </div>
+      </div>
+
+      <button id="pp-action" type="button" class="popup-settings" hidden>Create rule</button>
       <button id="open-options" type="button" class="secondary popup-settings">Open Settings</button>
     </main>
     <script src="shared.js"></script>

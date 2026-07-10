@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.9.0]
+
+### Added
+- Create a rule for the current page directly from the toolbar popup: name (auto-filled from the domain), bar text, and a color picked from your swatches.
+- Wildcards are on by default (matches the whole site); turn them off to flag only the exact page.
+- New rules inherit all other settings from your default style.
+- Conflict check: if a rule already covers the page, the popup offers to edit it instead of creating a duplicate.
+- Confirmation with a bar preview and a one-click Edit rule that opens Settings expanded on the new rule.
+
 ## [1.8.0]
 
 ### Added
@@ -96,6 +105,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.9.0]: #190
 [1.8.0]: #180
 [1.7.1]: #171
 [1.7.0]: #170

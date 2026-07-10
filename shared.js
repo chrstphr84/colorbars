@@ -71,8 +71,23 @@ const STASH_KEY = "colorbarsPrevEnabledV1";
 const DEFAULTSTYLE_KEY = "colorbarsDefaultRuleV1";
 const BLOCKLIST_KEY = "colorbarsBlocklistV1";
 const SNOOZE_KEY = "colorbarsSnoozeUntilV1";
+// Transient hand-off: the popup sets this to a rule id so the options page can
+// open expanded and scrolled to that rule, then clears it.
+const FOCUS_KEY = "colorbarsFocusRuleV1";
 
 const THEME_VALUES = ["auto", "light", "dark"];
+
+// Default saved swatches, shared by the settings picker and the popup.
+const DEFAULT_SWATCHES = [
+  "#d62828",
+  "#ff7a18",
+  "#fcbf49",
+  "#2a9d8f",
+  "#1a73e8",
+  "#6f42c1",
+  "#202124",
+  "#ffffff"
+];
 
 // ---- Global enable/disable with non-destructive memory -------------------
 // A "state" here is { rules, globalEnabled, stash } where stash maps rule id ->
@@ -280,6 +295,25 @@ function buildUrlForMatching(href) {
   } catch {
     return null;
   }
+}
+
+// Build a Domain-Pattern string for a "create rule from this page" action.
+// wholeSite=true  -> this exact host, any scheme, any path  (*://host/*)
+// wholeSite=false -> only this page's path (protocol//host/path*, allowing query)
+// The returned pattern is explicit, so rules using it set assumeWildcards=false.
+function patternForUrl(href, wholeSite) {
+  const url = buildUrlForMatching(href);
+  if (!url || !url.hostname) return null;
+  if (wholeSite) return `*://${url.hostname}/*`;
+  return `${url.protocol}//${url.hostname}${url.pathname}*`;
+}
+
+// True when the extension can add a bar to this URL (content scripts don't run
+// on browser-internal pages).
+function isSupportedPageUrl(href) {
+  const url = buildUrlForMatching(href);
+  if (!url) return false;
+  return ["http:", "https:", "ftp:", "file:"].includes(url.protocol);
 }
 
 function normalizeDomainPattern(rawPattern, assumeWildcards = true) {

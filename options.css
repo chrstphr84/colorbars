@@ -46,6 +46,11 @@ html[data-theme="dark"] {
   box-sizing: border-box;
 }
 
+/* The hidden attribute must always win, even over classes that set display. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   /* Always reserve the scrollbar gutter so the centered container doesn't shift
      left when a rule expands and the page grows tall enough to scroll. Also
@@ -809,6 +814,90 @@ body.popup {
 
 .popup-settings {
   width: 100%;
+}
+
+/* Create-rule form + confirmation inside the popup */
+.popup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.pp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pp-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.pp-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pp-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+}
+
+.pp-swatch.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.pp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Required-field feedback for the Bar text input */
+input.pp-invalid,
+input.pp-invalid:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+.pp-error {
+  font-size: 11.5px;
+  color: var(--danger);
+}
+
+/* Single-line text that truncates with an ellipsis; full text via title tooltip. */
+.pp-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.pp-done-preview {
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.6px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 10px;
 }
 
 .toast {

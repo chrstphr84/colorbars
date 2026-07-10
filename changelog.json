@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.9.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Create a rule for the current page directly from the toolbar popup: name (auto-filled from the domain), bar text, and a color picked from your swatches.",
+          "Wildcards are on by default (matches the whole site); turn them off to flag only the exact page.",
+          "New rules inherit all other settings from your default style.",
+          "Conflict check: if a rule already covers the page, the popup offers to edit it instead of creating a duplicate.",
+          "Confirmation with a bar preview and a one-click Edit rule that opens Settings expanded on the new rule."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.8.0",
     "sections": [
       {

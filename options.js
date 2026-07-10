@@ -87,16 +87,7 @@ mockupToggle.addEventListener("change", () => {
 });
 
 /* ------------------------------------------------------------- Swatches */
-const DEFAULT_SWATCHES = [
-  "#d62828",
-  "#ff7a18",
-  "#fcbf49",
-  "#2a9d8f",
-  "#1a73e8",
-  "#6f42c1",
-  "#202124",
-  "#ffffff"
-];
+// DEFAULT_SWATCHES lives in shared.js so the popup can reuse it.
 const MAX_SWATCHES = 16;
 let swatches = [];
 const swatchTrayRefreshers = new Set();
@@ -664,6 +655,7 @@ function render() {
   state.rules.forEach((rule, idx) => {
     const fragment = template.content.cloneNode(true);
     const shell = fragment.querySelector('[data-role="rule-shell"]');
+    shell.dataset.ruleId = rule.id;
 
     shell.open = Boolean(state.openById[rule.id]);
     shell.addEventListener("toggle", () => {
@@ -720,7 +712,7 @@ function render() {
 
 function load() {
   chrome.storage.sync.get(
-    [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, DEFAULTSTYLE_KEY, BLOCKLIST_KEY, SNOOZE_KEY],
+    [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, DEFAULTSTYLE_KEY, BLOCKLIST_KEY, SNOOZE_KEY, FOCUS_KEY],
     (items) => {
       state.rules = normalizeRules(items[STORAGE_KEY]);
       state.globalEnabled = items[GLOBAL_KEY] !== false;
@@ -728,8 +720,21 @@ function load() {
       state.defaults = normalizeDefaults(items[DEFAULTSTYLE_KEY]);
       globalState.blocklist = Array.isArray(items[BLOCKLIST_KEY]) ? items[BLOCKLIST_KEY] : [];
       globalState.snoozeUntil = Number(items[SNOOZE_KEY]) || 0;
+
+      // Hand-off from the popup: expand + scroll to a just-created rule.
+      const focusId = items[FOCUS_KEY];
+      if (focusId && state.rules.some((r) => r.id === focusId)) {
+        state.openById[focusId] = true;
+        chrome.storage.sync.remove(FOCUS_KEY);
+      }
+
       initGlobalSection();
       render();
+
+      if (focusId) {
+        const shell = listEl.querySelector(`[data-rule-id="${focusId}"]`);
+        if (shell) shell.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }
   );
 }
