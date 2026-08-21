@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.12.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Click any text in the color bar to copy it to the clipboard (briefly shows \"Copied\"). Only the text is clickable; the rest of the bar stays click-through."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.11.2",
     "sections": [
       {

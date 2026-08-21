@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.12.0]
+
+### Added
+- Click any text in the color bar to copy it to the clipboard (briefly shows "Copied"). Only the text is clickable; the rest of the bar stays click-through.
+
 ## [1.11.2]
 
 ### Changed
@@ -135,6 +140,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.12.0]: #1120
 [1.11.2]: #1112
 [1.11.1]: #1111
 [1.11.0]: #1110

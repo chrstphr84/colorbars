@@ -187,6 +187,44 @@ function resolveSegments(rule, onFleetReady) {
   return resolved;
 }
 
+let copyFlashTimer = null;
+
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function flashCopied(span, original) {
+  span.textContent = "Copied";
+  clearTimeout(copyFlashTimer);
+  copyFlashTimer = setTimeout(() => {
+    span.textContent = original;
+  }, 700);
+}
+
+function copySegmentText(span, text) {
+  const done = () => flashCopied(span, text);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => {
+      fallbackCopy(text);
+      done();
+    });
+    return;
+  }
+  fallbackCopy(text);
+  done();
+}
+
 function makeSegmentEl(text) {
   const span = document.createElement("span");
   span.className = "__cb_seg__";
@@ -195,6 +233,15 @@ function makeSegmentEl(text) {
   span.style.overflow = "hidden";
   span.style.textOverflow = "ellipsis";
   span.style.whiteSpace = "nowrap";
+  // Only the text is clickable (to copy); the rest of the bar stays
+  // click-through (pointer-events:none on the bar itself).
+  span.style.pointerEvents = "auto";
+  span.style.cursor = "pointer";
+  span.title = "Click to copy";
+  span.addEventListener("click", (event) => {
+    event.stopPropagation();
+    copySegmentText(span, text);
+  });
   return span;
 }
 
