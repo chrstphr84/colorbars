@@ -124,6 +124,36 @@
 
           <details class="rule">
             <summary class="rule-summary">
+              <div class="rule-title">Tab indicator</div>
+              <div class="rule-meta" id="tab-indicator-meta">Off</div>
+            </summary>
+            <article class="rule-body">
+              <label class="inline">
+                <input id="tab-indicator-toggle" class="switch" type="checkbox" />
+                Show the rule's color on background tabs
+              </label>
+              <p class="hint">
+                Replaces the favicon with a solid rounded tile in the rule's color on unfocused tabs. The active tab
+                keeps its real icon, so the page you're viewing is never obscured.
+              </p>
+
+              <div id="tab-indicator-scope" hidden>
+                <div class="pp-field-label" style="margin-bottom: 4px">Applies to</div>
+                <label class="inline">
+                  <input type="radio" name="tab-scope-mode" value="all" />
+                  All rules
+                </label>
+                <label class="inline">
+                  <input type="radio" name="tab-scope-mode" value="selected" />
+                  Selected rules
+                </label>
+                <div id="tab-scope-list" class="tab-scope-list" hidden></div>
+              </div>
+            </article>
+          </details>
+
+          <details class="rule">
+            <summary class="rule-summary">
               <div class="rule-title">Display</div>
               <div class="rule-meta" id="mockup-meta">Mock-up shown</div>
             </summary>

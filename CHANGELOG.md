@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.11.0]
+
+### Added
+- Global Tab indicator toggle: replaces the tab's favicon with a solid rounded tile in the matched rule's color.
+- The indicator only appears on background (unfocused) tabs — the active tab keeps its real favicon, so the page you're viewing is never obscured.
+- Follows the rule color across in-app (SPA) navigations.
+- Optional scope: apply the indicator to all rules or only selected ones, set in one place in the Global panel (rules stay uncluttered).
+
 ## [1.10.1]
 
 ### Fixed
@@ -115,6 +123,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.11.0]: #1110
 [1.10.1]: #1101
 [1.10.0]: #1100
 [1.9.0]: #190

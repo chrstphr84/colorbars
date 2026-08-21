@@ -85,6 +85,16 @@ const SNOOZE_KEY = "colorbarsSnoozeUntilV1";
 // Transient hand-off: the popup sets this to a rule id so the options page can
 // open expanded and scrolled to that rule, then clears it.
 const FOCUS_KEY = "colorbarsFocusRuleV1";
+// Global toggle: show the rule's color as a favicon indicator on background tabs.
+const TAB_INDICATOR_KEY = "colorbarsTabIndicatorV1";
+// Which rules the tab indicator applies to: { mode: "all" | "selected", ids: [] }.
+const TAB_SCOPE_KEY = "colorbarsTabIndicatorScopeV1";
+
+// True when the tab indicator should apply to a given rule id under a scope.
+function tabIndicatorApplies(scope, ruleId) {
+  if (!scope || scope.mode !== "selected") return true; // default: all rules
+  return Array.isArray(scope.ids) && scope.ids.includes(ruleId);
+}
 
 const THEME_VALUES = ["auto", "light", "dark"];
 

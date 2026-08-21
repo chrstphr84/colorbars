@@ -87,6 +87,77 @@ mockupToggle.addEventListener("change", () => {
   applyMockupVisibility();
 });
 
+/* ------------------------------------------------ Tab indicator toggle */
+const tabIndicatorToggle = document.getElementById("tab-indicator-toggle");
+const tabScopeBlock = document.getElementById("tab-indicator-scope");
+const tabScopeList = document.getElementById("tab-scope-list");
+let tabIndicatorOn = false;
+let tabScope = { mode: "all", ids: [] };
+
+function persistTabScope() {
+  chrome.storage.sync.set({ [TAB_SCOPE_KEY]: tabScope });
+}
+
+// Rebuild the "Applies to" control from the current rules, keeping it in sync as
+// rules are added, renamed, or removed.
+function renderTabScope() {
+  tabScopeBlock.hidden = !tabIndicatorOn;
+  document.querySelectorAll('input[name="tab-scope-mode"]').forEach((r) => {
+    r.checked = r.value === tabScope.mode;
+  });
+  const selected = tabScope.mode === "selected";
+  tabScopeList.hidden = !selected;
+  if (!selected) return;
+
+  tabScopeList.innerHTML = "";
+  if (state.rules.length === 0) {
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.textContent = "No rules yet.";
+    tabScopeList.appendChild(p);
+    return;
+  }
+  state.rules.forEach((rule) => {
+    const label = document.createElement("label");
+    label.className = "inline";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = tabScope.ids.includes(rule.id);
+    cb.addEventListener("change", () => {
+      const set = new Set(tabScope.ids);
+      if (cb.checked) set.add(rule.id);
+      else set.delete(rule.id);
+      tabScope.ids = [...set];
+      persistTabScope();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(` ${rule.label || "Untitled rule"}`));
+    tabScopeList.appendChild(label);
+  });
+}
+
+function applyTabIndicatorState() {
+  tabIndicatorToggle.checked = tabIndicatorOn;
+  const meta = document.getElementById("tab-indicator-meta");
+  if (meta) meta.textContent = tabIndicatorOn ? "On" : "Off";
+  renderTabScope();
+}
+
+tabIndicatorToggle.addEventListener("change", () => {
+  tabIndicatorOn = tabIndicatorToggle.checked;
+  chrome.storage.sync.set({ [TAB_INDICATOR_KEY]: tabIndicatorOn });
+  applyTabIndicatorState();
+});
+
+document.querySelectorAll('input[name="tab-scope-mode"]').forEach((r) => {
+  r.addEventListener("change", () => {
+    if (!r.checked) return;
+    tabScope.mode = r.value === "selected" ? "selected" : "all";
+    persistTabScope();
+    renderTabScope();
+  });
+});
+
 /* ------------------------------------------------------------- Swatches */
 // DEFAULT_SWATCHES lives in shared.js so the popup can reuse it.
 const MAX_SWATCHES = 16;
@@ -712,6 +783,9 @@ function render() {
     renderSegments(shell, rule, idx);
     listEl.appendChild(fragment);
   });
+
+  // Keep the Tab indicator "Selected rules" checklist in sync with the rules.
+  if (typeof renderTabScope === "function") renderTabScope();
 }
 
 function load() {
@@ -884,6 +958,7 @@ if (versionEl) {
 
 loadTheme();
 loadMockupPref();
+loadTabIndicatorPref();
 loadSwatches(() => {
   load();
 });
@@ -899,5 +974,17 @@ function loadMockupPref() {
   chrome.storage.sync.get([MOCKUP_KEY], (items) => {
     showMockup = items[MOCKUP_KEY] !== false; // default on
     applyMockupVisibility();
+  });
+}
+
+function loadTabIndicatorPref() {
+  chrome.storage.sync.get([TAB_INDICATOR_KEY, TAB_SCOPE_KEY], (items) => {
+    tabIndicatorOn = items[TAB_INDICATOR_KEY] === true; // default off
+    const s = items[TAB_SCOPE_KEY];
+    tabScope = {
+      mode: s && s.mode === "selected" ? "selected" : "all",
+      ids: s && Array.isArray(s.ids) ? s.ids : []
+    };
+    applyTabIndicatorState();
   });
 }

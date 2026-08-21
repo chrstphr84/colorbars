@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.11.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Global Tab indicator toggle: replaces the tab's favicon with a solid rounded tile in the matched rule's color.",
+          "The indicator only appears on background (unfocused) tabs — the active tab keeps its real favicon, so the page you're viewing is never obscured.",
+          "Follows the rule color across in-app (SPA) navigations.",
+          "Optional scope: apply the indicator to all rules or only selected ones, set in one place in the Global panel (rules stay uncluttered)."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.10.1",
     "sections": [
       {

@@ -290,26 +290,119 @@ function applyRule(rule) {
   constrainTypography(bar, style, barHeightPx);
 }
 
+// ---- Tab indicator (favicon) --------------------------------------------
+// Chrome extensions can't draw on the tab strip, so the only per-tab visual is
+// the favicon. We composite a faded colored stripe onto the bottom of the real
+// favicon — but only on BACKGROUND tabs, restoring the true icon on the active
+// tab so the product UI you're looking at is never obscured.
+const CB_FAVICON_ID = "__cb_favicon_link__";
+let indicatorEnabled = false;
+let indicatorScope = null; // { mode, ids } — which rules the indicator applies to
+let indicatorColor = null; // rule color when a bar applies + in scope, else null
+let faviconOriginalHref = null; // the page's real favicon, captured once
+let faviconApplied = false;
+
+function pageFaviconLink() {
+  const links = [...document.querySelectorAll('link[rel~="icon" i]')];
+  return links.find((l) => l.href) || null;
+}
+
+function ensureFaviconCaptured() {
+  if (faviconOriginalHref !== null) return;
+  const link = pageFaviconLink();
+  faviconOriginalHref = link ? link.href : `${location.origin}/favicon.ico`;
+}
+
+function managedFaviconLink() {
+  let link = pageFaviconLink();
+  if (!link) {
+    link = document.createElement("link");
+    link.id = CB_FAVICON_ID;
+    link.rel = "icon";
+    (document.head || document.documentElement).appendChild(link);
+  }
+  return link;
+}
+
+function restoreFavicon() {
+  if (!faviconApplied) return;
+  const link = pageFaviconLink();
+  if (link && faviconOriginalHref) link.href = faviconOriginalHref;
+  faviconApplied = false;
+}
+
+// A solid rounded tile in the rule's color. Drawn from scratch (no page pixels),
+// so it works on every site including cross-origin favicons, and it's synchronous.
+function makeSolidTileDataUrl(color) {
+  const size = 32;
+  const radius = Math.round(size * 0.22);
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = color;
+  if (typeof ctx.roundRect === "function") {
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size, radius);
+    ctx.fill();
+  } else {
+    ctx.fillRect(0, 0, size, size);
+  }
+  return canvas.toDataURL("image/png");
+}
+
+function updateTabIndicator() {
+  // Wait until the head is parsed so we capture the site's real favicon.
+  if (document.readyState === "loading") return;
+
+  const shouldShow = indicatorEnabled && indicatorColor && document.hidden;
+  if (!shouldShow) {
+    restoreFavicon();
+    return;
+  }
+
+  ensureFaviconCaptured();
+  managedFaviconLink().href = makeSolidTileDataUrl(indicatorColor);
+  faviconApplied = true;
+}
+
+function setIndicator(color) {
+  indicatorColor = color || null;
+  updateTabIndicator();
+}
+
+document.addEventListener("visibilitychange", updateTabIndicator);
+
 function evaluateAndApply(rules) {
   const normalized = normalizeRules(rules);
   const matched = findMatchingRule(normalized, window.location.href);
   applyRule(matched);
+  const inScope = matched && tabIndicatorApplies(indicatorScope, matched.id);
+  setIndicator(inScope && matched.style ? matched.style.backgroundColor : null);
 }
 
 let snoozeTimer = null;
 
+function suppress() {
+  // No bar on this tab → also drop any tab indicator (restore the real favicon).
+  removeBar();
+  setIndicator(null);
+}
+
 function loadAndApply() {
   chrome.storage.sync.get(
-    [STORAGE_KEY, GLOBAL_KEY, BLOCKLIST_KEY, SNOOZE_KEY],
+    [STORAGE_KEY, GLOBAL_KEY, BLOCKLIST_KEY, SNOOZE_KEY, TAB_INDICATOR_KEY, TAB_SCOPE_KEY],
     (items) => {
       if (snoozeTimer) {
         clearTimeout(snoozeTimer);
         snoozeTimer = null;
       }
+      indicatorEnabled = items[TAB_INDICATOR_KEY] === true;
+      indicatorScope = items[TAB_SCOPE_KEY] || null;
 
       // Master off-switch.
       if (items[GLOBAL_KEY] === false) {
-        removeBar();
+        suppress();
         return;
       }
 
@@ -317,7 +410,7 @@ function loadAndApply() {
       const snoozeUntil = Number(items[SNOOZE_KEY]) || 0;
       const remaining = snoozeUntil - Date.now();
       if (remaining > 0) {
-        removeBar();
+        suppress();
         snoozeTimer = setTimeout(loadAndApply, Math.min(remaining, 2147483647));
         return;
       }
@@ -325,13 +418,30 @@ function loadAndApply() {
       // Domain blocklist.
       const url = buildUrlForMatching(window.location.href);
       if (url && isHostBlocked(items[BLOCKLIST_KEY], url.hostname)) {
-        removeBar();
+        suppress();
         return;
       }
 
       evaluateAndApply(items[STORAGE_KEY]);
     }
   );
+}
+
+// Re-evaluate on soft (SPA) navigations so the bar and tab indicator follow the
+// rule for the new URL without a full reload.
+let cbLastHref = location.href;
+function onMaybeUrlChange() {
+  if (location.href === cbLastHref) return;
+  cbLastHref = location.href;
+  faviconOriginalHref = null; // the new page may have its own favicon
+  loadAndApply();
+}
+window.addEventListener("popstate", onMaybeUrlChange);
+window.addEventListener("hashchange", onMaybeUrlChange);
+if (window.navigation && typeof window.navigation.addEventListener === "function") {
+  window.navigation.addEventListener("navigate", () => setTimeout(onMaybeUrlChange, 0));
+} else {
+  setInterval(onMaybeUrlChange, 1000);
 }
 
 loadAndApply();
@@ -341,7 +451,14 @@ if (document.readyState === "loading") {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "sync") return;
-  if (changes[STORAGE_KEY] || changes[GLOBAL_KEY] || changes[BLOCKLIST_KEY] || changes[SNOOZE_KEY]) {
+  if (
+    changes[STORAGE_KEY] ||
+    changes[GLOBAL_KEY] ||
+    changes[BLOCKLIST_KEY] ||
+    changes[SNOOZE_KEY] ||
+    changes[TAB_INDICATOR_KEY] ||
+    changes[TAB_SCOPE_KEY]
+  ) {
     loadAndApply();
   }
 });
