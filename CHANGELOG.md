@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.10.0]
+
+### Added
+- Browser Info segment for the bar text, showing the current tab's browser, full version, platform, and architecture (placeholders {browser}, {version}, {major}, {platform}, {arch}); works like the Fleet Server Info segment but reads the browser with no network request. Full version/platform/arch come from User-Agent Client Hints.
+
 ## [1.9.0]
 
 ### Added
@@ -105,6 +110,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.10.0]: #1100
 [1.9.0]: #190
 [1.8.0]: #180
 [1.7.1]: #171

@@ -97,7 +97,7 @@
       <section class="card">
         <h2>Bar Text &amp; Segments</h2>
         <ul>
-          <li>A rule's bar can contain multiple text elements ("segments"). Add as many as you need.</li>
+          <li>A rule's bar can contain multiple text elements ("segments"): plain <strong>Text</strong>, <strong>Fleet Server Info</strong>, and <strong>Browser Info</strong>. Add as many as you need.</li>
           <li>Each segment is placed <strong>Left</strong>, <strong>Center</strong>, or <strong>Right</strong>.</li>
           <li>Segments are placed into independent zones and never overlap.</li>
           <li>Segments sharing a zone stack horizontally, in list order.</li>
@@ -115,6 +115,16 @@
           <li>The display template supports placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>, <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>.</li>
           <li>The segment only renders on tabs whose server is detected as Fleet; otherwise it shows nothing.</li>
           <li>An optional <strong>API token</strong> field is available for the authenticated <code>/api/latest/fleet/version</code> endpoint when the public <code>/version</code> is unavailable. The token field is masked and stored locally.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Browser Info</h2>
+        <ul>
+          <li>Add a <strong>Browser Info</strong> segment to show the current tab's browser, version, platform, and architecture in the bar.</li>
+          <li>Placeholders: <code>{browser}</code>, <code>{version}</code> (full version), <code>{major}</code>, <code>{platform}</code> (e.g. macOS, Windows), and <code>{arch}</code> (e.g. arm64, x86_64). Example: <code>{browser} {version} ({arch})</code>.</li>
+          <li>The full version, platform, and architecture come from the browser's User-Agent Client Hints; other browsers fall back to the user-agent string. No network request is made.</li>
+          <li>The build channel ("Official Build") is not available to extensions, so it can't be shown.</li>
         </ul>
       </section>
 

@@ -27,6 +27,17 @@ const DEFAULT_FLEET_SEGMENT = {
   justify: "right"
 };
 
+// A dynamic segment that shows the current tab's browser name and version, read
+// from the user agent. {browser}, {version} and {major} placeholders.
+const DEFAULT_BROWSER_SEGMENT = {
+  id: "",
+  type: "browser",
+  enabled: false,
+  label: "Browser",
+  template: "{browser} {version}",
+  justify: "right"
+};
+
 const DEFAULT_RULE = {
   id: "",
   enabled: true,
@@ -173,23 +184,28 @@ function isHostBlocked(blocklist, hostname) {
 }
 
 function defaultSegmentForType(type) {
-  return type === "fleet"
-    ? structuredClone(DEFAULT_FLEET_SEGMENT)
-    : structuredClone(DEFAULT_TEXT_SEGMENT);
+  if (type === "fleet") return structuredClone(DEFAULT_FLEET_SEGMENT);
+  if (type === "browser") return structuredClone(DEFAULT_BROWSER_SEGMENT);
+  return structuredClone(DEFAULT_TEXT_SEGMENT);
 }
 
 function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
   const raw = rawSegment && typeof rawSegment === "object" ? rawSegment : {};
-  const type = raw.type === "fleet" ? "fleet" : "text";
+  const type = raw.type === "fleet" ? "fleet" : raw.type === "browser" ? "browser" : "text";
   const merged = { ...defaultSegmentForType(type), ...raw, type };
   if (!merged.id) merged.id = `seg-${Date.now()}-${ruleIndex}-${segmentIndex}`;
   merged.enabled = Boolean(merged.enabled);
   merged.justify = JUSTIFY_VALUES.includes(merged.justify) ? merged.justify : "center";
-  merged.label = String(merged.label || (type === "fleet" ? "Fleet server" : "Text"));
+  const fallbackLabel = type === "fleet" ? "Fleet server" : type === "browser" ? "Browser" : "Text";
+  merged.label = String(merged.label || fallbackLabel);
   if (type === "fleet") {
     merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
     merged.token = String(merged.token || "");
     delete merged.text;
+  } else if (type === "browser") {
+    merged.template = String(merged.template || DEFAULT_BROWSER_SEGMENT.template);
+    delete merged.text;
+    delete merged.token;
   } else {
     merged.text = String(merged.text ?? "");
     delete merged.template;
@@ -287,6 +303,78 @@ function formatFleetTemplate(template, info) {
     const value = safe[key];
     return value === undefined || value === null ? "" : String(value);
   });
+}
+
+// Identify the browser + version from a user-agent string. Chromium-based
+// browsers that embed "Chrome/..." are matched first so they don't fall through
+// to the generic Chrome case.
+function parseBrowserInfo(userAgent) {
+  const ua = String(userAgent || "");
+  const tests = [
+    { name: "Microsoft Edge", re: /Edg(?:e|A|iOS)?\/([\d.]+)/ },
+    { name: "Opera", re: /OPR\/([\d.]+)/ },
+    { name: "Vivaldi", re: /Vivaldi\/([\d.]+)/ },
+    { name: "Samsung Internet", re: /SamsungBrowser\/([\d.]+)/ },
+    { name: "Firefox", re: /(?:Firefox|FxiOS)\/([\d.]+)/ },
+    { name: "Chrome", re: /(?:Chrome|CriOS)\/([\d.]+)/ },
+    { name: "Safari", re: /Version\/([\d.]+).*Safari/ }
+  ];
+  for (const t of tests) {
+    const m = ua.match(t.re);
+    if (m) {
+      const version = m[1];
+      return { browser: t.name, version, major: version.split(".")[0] };
+    }
+  }
+  return { browser: "Browser", version: "", major: "" };
+}
+
+// Substitute {browser}/{version}/{major}/{platform}/{arch} placeholders in a
+// browser segment. Whitespace is collapsed so an empty placeholder (e.g. {arch}
+// on a browser that doesn't report it) doesn't leave gaps.
+function formatBrowserTemplate(template, info) {
+  const tpl = String(template || DEFAULT_BROWSER_SEGMENT.template);
+  const safe = info && typeof info === "object" ? info : {};
+  return tpl
+    .replace(/\{(browser|version|major|platform|arch)\}/g, (_, key) => {
+      const value = safe[key];
+      return value === undefined || value === null ? "" : String(value);
+    })
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Normalize architecture + bitness (from UA Client Hints) to a familiar label.
+function browserArchLabel(architecture, bitness) {
+  const a = String(architecture || "");
+  const b = String(bitness || "");
+  if (!a) return "";
+  if (a === "arm" && b === "64") return "arm64";
+  if (a === "x86" && b === "64") return "x86_64";
+  if (a === "x86" && b === "32") return "x86";
+  return b ? `${a}${b}` : a;
+}
+
+// Merge high-entropy UA Client Hints into a base browser info object: upgrade to
+// the full version (UA strings are frozen to X.0.0.0), and add platform + arch.
+function mergeBrowserHighEntropy(base, he) {
+  const info = { ...base };
+  if (!he || typeof he !== "object") return info;
+
+  const list = Array.isArray(he.fullVersionList) ? he.fullVersionList : [];
+  const real = list.filter((b) => b && b.brand && !/not.*brand/i.test(b.brand));
+  const name = String(base.browser || "").split(" ")[0].toLowerCase();
+  const pick =
+    real.find((b) => name && b.brand.toLowerCase().includes(name)) ||
+    real.find((b) => !/chromium/i.test(b.brand)) ||
+    real[0];
+  if (pick && pick.version) {
+    info.version = pick.version;
+    info.major = pick.version.split(".")[0];
+  }
+  if (he.platform) info.platform = String(he.platform);
+  info.arch = browserArchLabel(he.architecture, he.bitness);
+  return info;
 }
 
 function buildUrlForMatching(href) {

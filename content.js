@@ -131,6 +131,37 @@ function constrainTypography(bar, style, barHeightPx) {
 // Resolve every enabled segment of the rule into {justify, text} entries.
 // Fleet segments only produce text once their /version lookup has resolved as a
 // Fleet server; otherwise they render nothing (and never reserve space).
+// Browser details. Chromium freezes navigator.userAgent to X.0.0.0, so the full
+// version + platform + architecture come from the async high-entropy Client
+// Hints API. While that resolves we render nothing (state "pending"); browsers
+// without Client Hints fall back to the (unfrozen) UA string synchronously.
+let browserState = null; // null=unstarted | "pending" | "ready"
+let browserInfo = null;
+function getBrowserInfo(onReady) {
+  const uad = navigator.userAgentData;
+  if (!uad || typeof uad.getHighEntropyValues !== "function") {
+    if (!browserInfo) browserInfo = parseBrowserInfo(navigator.userAgent);
+    return browserInfo;
+  }
+  if (browserState === "ready") return browserInfo;
+  if (browserState === null) {
+    browserState = "pending";
+    uad
+      .getHighEntropyValues(["fullVersionList", "architecture", "bitness", "platform", "platformVersion"])
+      .then((he) => {
+        browserInfo = mergeBrowserHighEntropy(parseBrowserInfo(navigator.userAgent), he);
+        browserState = "ready";
+        if (typeof onReady === "function") onReady();
+      })
+      .catch(() => {
+        browserInfo = parseBrowserInfo(navigator.userAgent);
+        browserState = "ready";
+        if (typeof onReady === "function") onReady();
+      });
+  }
+  return browserState === "ready" ? browserInfo : null;
+}
+
 function resolveSegments(rule, onFleetReady) {
   const transform = (rule.style && rule.style.textTransform) || "none";
   const resolved = [];
@@ -140,6 +171,12 @@ function resolveSegments(rule, onFleetReady) {
       const entry = getFleetInfo(seg.token, onFleetReady);
       if (entry.state === "ready") {
         const text = formatFleetTemplate(seg.template, entry.info);
+        if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
+      }
+    } else if (seg.type === "browser") {
+      const info = getBrowserInfo(onFleetReady);
+      if (info) {
+        const text = formatBrowserTemplate(seg.template, info);
         if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
       }
     } else {

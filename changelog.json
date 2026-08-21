@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.10.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Browser Info segment for the bar text, showing the current tab's browser, full version, platform, and architecture (placeholders {browser}, {version}, {major}, {platform}, {arch}); works like the Fleet Server Info segment but reads the browser with no network request. Full version/platform/arch come from User-Agent Client Hints."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.9.0",
     "sections": [
       {

@@ -18,6 +18,7 @@ const listEl = document.getElementById("rules-list");
 const template = document.getElementById("rule-template");
 const textSegTemplate = document.getElementById("text-segment-template");
 const fleetSegTemplate = document.getElementById("fleet-segment-template");
+const browserSegTemplate = document.getElementById("browser-segment-template");
 const addButton = document.getElementById("add-rule");
 const toastEl = document.getElementById("toast");
 let toastTimer = null;
@@ -481,6 +482,7 @@ function save(showSavedToast = false) {
 function segmentDisplayText(seg) {
   if (seg.label && seg.label.trim()) return seg.label.trim();
   if (seg.type === "fleet") return seg.template || "Fleet server";
+  if (seg.type === "browser") return seg.template || "Browser";
   return seg.text || "Text";
 }
 
@@ -561,7 +563,8 @@ function renderSegments(shell, rule, idx) {
   container.innerHTML = "";
 
   rule.segments.forEach((seg, segIdx) => {
-    const tpl = seg.type === "fleet" ? fleetSegTemplate : textSegTemplate;
+    const tpl =
+      seg.type === "fleet" ? fleetSegTemplate : seg.type === "browser" ? browserSegTemplate : textSegTemplate;
     const frag = tpl.content.cloneNode(true);
     const segEl = frag.querySelector('[data-role="segment"]');
     const nameEl = segEl.querySelector('[data-role="seg-name"]');
@@ -638,7 +641,7 @@ function renderSegments(shell, rule, idx) {
 }
 
 function addSegment(idx, type) {
-  const base = type === "fleet" ? structuredClone(DEFAULT_FLEET_SEGMENT) : structuredClone(DEFAULT_TEXT_SEGMENT);
+  const base = structuredClone(defaultSegmentForType(type));
   base.id = genSegId();
   base.enabled = true;
   state.rules[idx].segments.push(base);
@@ -703,6 +706,7 @@ function render() {
 
     shell.querySelector('[data-action="add-text"]').addEventListener("click", () => addSegment(idx, "text"));
     shell.querySelector('[data-action="add-fleet"]').addEventListener("click", () => addSegment(idx, "fleet"));
+    shell.querySelector('[data-action="add-browser"]').addEventListener("click", () => addSegment(idx, "browser"));
 
     syncVisibility(shell, rule);
     renderSegments(shell, rule, idx);
