@@ -545,6 +545,96 @@ function save() {
       state.rules = next;
     }
   );
+  updatePreview(); // keep a live preview in sync with edits
+}
+
+/* --------------------------------------------------------- Rule preview */
+// A temporary, non-persisted preview of one rule's bar, pinned to the top of
+// the settings page. Cleared when the page unloads (so it resets on leaving).
+let previewRuleId = null;
+const PREVIEW_ID = "cb-rule-preview";
+
+function removePreview() {
+  const el = document.getElementById(PREVIEW_ID);
+  if (el) el.remove();
+  document.body.style.removeProperty("padding-top");
+}
+
+function updatePreview() {
+  const rule = previewRuleId ? state.rules.find((r) => r.id === previewRuleId) : null;
+  if (!rule) {
+    removePreview();
+    return;
+  }
+  const style = rule.style || {};
+  const hNum = Number(rule.barHeight);
+  const h = Number.isFinite(hNum) ? Math.min(Math.max(Math.round(hNum), 16), 120) : 28;
+  const fontSize = Math.min(Math.max(Number(style.fontSize) || 14, 8), h - 6);
+
+  let bar = document.getElementById(PREVIEW_ID);
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = PREVIEW_ID;
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = "";
+  Object.assign(bar.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    right: "0",
+    height: `${h}px`,
+    zIndex: "2147483647",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: parseColorWithOpacity(style.backgroundColor, style.backgroundOpacity),
+    color: parseColorWithOpacity(style.textColor, style.textOpacity),
+    fontFamily: style.fontFamily || "Arial, sans-serif",
+    fontWeight: style.fontWeight || "700",
+    fontStyle: style.fontStyle || "normal",
+    fontSize: `${fontSize}px`,
+    letterSpacing: `${Math.max(0, Number(style.letterSpacing) || 0)}px`,
+    textTransform: style.textTransform || "none",
+    lineHeight: "1",
+    boxSizing: "border-box",
+    padding: "0 12px",
+    borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
+    textShadow: "0 1px 1px rgba(0, 0, 0, 0.2)",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    pointerEvents: "none"
+  });
+
+  const zones = {};
+  ["left", "center", "right"].forEach((name) => {
+    const z = document.createElement("div");
+    Object.assign(z.style, {
+      flex: "1 1 0",
+      minWidth: "0",
+      display: "flex",
+      alignItems: "center",
+      gap: "14px",
+      overflow: "hidden",
+      justifyContent: name === "left" ? "flex-start" : name === "right" ? "flex-end" : "center"
+    });
+    bar.appendChild(z);
+    zones[name] = z;
+  });
+
+  (rule.segments || []).forEach((seg) => {
+    if (!seg.enabled) return;
+    // Dynamic segments show their template as a placeholder (real values appear
+    // on the actual page).
+    const text = seg.type === "text" ? seg.text || "" : seg.template || "";
+    if (!text) return;
+    const span = document.createElement("span");
+    span.textContent = text;
+    Object.assign(span.style, { minWidth: "0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" });
+    (zones[seg.justify] || zones.center).appendChild(span);
+  });
+
+  document.body.style.paddingTop = `${h}px`;
 }
 
 /* -------------------------------------------------------------- Segments */
@@ -786,9 +876,25 @@ function render() {
     });
 
     shell.querySelector('[data-action="delete"]').addEventListener("click", () => {
+      if (previewRuleId === rule.id) previewRuleId = null;
       state.rules.splice(idx, 1);
       render();
       save(true);
+    });
+
+    // Temporary per-rule preview (not persisted; only one at a time).
+    const previewToggle = shell.querySelector('[data-role="preview-toggle"]');
+    previewToggle.checked = previewRuleId === rule.id;
+    previewToggle.addEventListener("change", () => {
+      if (previewToggle.checked) {
+        previewRuleId = rule.id;
+        document.querySelectorAll('[data-role="preview-toggle"]').forEach((t) => {
+          if (t !== previewToggle) t.checked = false;
+        });
+      } else {
+        previewRuleId = null;
+      }
+      updatePreview();
     });
 
     shell.querySelector('[data-action="add-text"]').addEventListener("click", () => addSegment(idx, "text"));

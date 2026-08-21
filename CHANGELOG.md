@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.16.0]
+
+### Added
+- Rule preview: tick Preview on a rule to pin a live preview of its bar to the top of the settings page. Only one at a time; it's temporary and resets when you leave settings.
+- Dynamic segments (Fleet/Browser/Page Title) show their template as a placeholder in the preview; real values appear on the actual page.
+
 ## [1.15.0]
 
 ### Added
@@ -158,6 +164,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.16.0]: #1160
 [1.15.0]: #1150
 [1.14.0]: #1140
 [1.13.0]: #1130

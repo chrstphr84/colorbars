@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.16.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Rule preview: tick Preview on a rule to pin a live preview of its bar to the top of the settings page. Only one at a time; it's temporary and resets when you leave settings.",
+          "Dynamic segments (Fleet/Browser/Page Title) show their template as a placeholder in the preview; real values appear on the actual page."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.15.0",
     "sections": [
       {
