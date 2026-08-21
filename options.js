@@ -21,6 +21,7 @@ const textSegTemplate = document.getElementById("text-segment-template");
 const fleetSegTemplate = document.getElementById("fleet-segment-template");
 const browserSegTemplate = document.getElementById("browser-segment-template");
 const pageTitleSegTemplate = document.getElementById("pagetitle-segment-template");
+const fleetRoleSegTemplate = document.getElementById("fleetrole-segment-template");
 const addButton = document.getElementById("add-rule");
 const toastEl = document.getElementById("toast");
 let toastTimer = null;
@@ -552,6 +553,7 @@ function segmentDisplayText(seg) {
   if (seg.type === "fleet") return seg.template || "Fleet server";
   if (seg.type === "browser") return seg.template || "Browser";
   if (seg.type === "pagetitle") return seg.template || "Page title";
+  if (seg.type === "fleetrole") return seg.template || "Fleet role";
   return seg.text || "Text";
 }
 
@@ -636,6 +638,7 @@ function renderSegments(shell, rule, idx) {
       fleet: fleetSegTemplate,
       browser: browserSegTemplate,
       pagetitle: pageTitleSegTemplate,
+      fleetrole: fleetRoleSegTemplate,
       text: textSegTemplate
     };
     const tpl = tplByType[seg.type] || textSegTemplate;
@@ -792,6 +795,7 @@ function render() {
     shell.querySelector('[data-action="add-fleet"]').addEventListener("click", () => addSegment(idx, "fleet"));
     shell.querySelector('[data-action="add-browser"]').addEventListener("click", () => addSegment(idx, "browser"));
     shell.querySelector('[data-action="add-pagetitle"]').addEventListener("click", () => addSegment(idx, "pagetitle"));
+    shell.querySelector('[data-action="add-fleetrole"]').addEventListener("click", () => addSegment(idx, "fleetrole"));
 
     syncVisibility(shell, rule);
     renderSegments(shell, rule, idx);

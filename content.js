@@ -57,6 +57,27 @@ function getFleetInfo(token, onReady) {
   return entry;
 }
 
+// Logged-in Fleet user's role via the authenticated /me endpoint (the session
+// cookie authenticates the same-origin request). Fetched at most once per tab.
+let fleetRoleCache = null; // { state: "pending"|"ready"|"none", role }
+function getFleetRole(onReady) {
+  if (fleetRoleCache) return fleetRoleCache;
+  fleetRoleCache = { state: "pending", role: "" };
+  fetch(`${location.origin}/api/latest/fleet/me`, { credentials: "include", cache: "no-store" })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      fleetRoleCache = isFleetMeResponse(data)
+        ? { state: "ready", role: fleetDisplayRole(data.user) }
+        : { state: "none", role: "" };
+      if (typeof onReady === "function") onReady();
+    })
+    .catch(() => {
+      fleetRoleCache = { state: "none", role: "" };
+      if (typeof onReady === "function") onReady();
+    });
+  return fleetRoleCache;
+}
+
 function clearPageOffset() {
   const html = document.documentElement;
   html.style.removeProperty("scroll-padding-top");
@@ -189,6 +210,12 @@ function resolveSegments(rule, onFleetReady) {
     } else if (seg.type === "pagetitle") {
       const text = formatPageTitleTemplate(seg.template, realPageTitle);
       if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
+    } else if (seg.type === "fleetrole") {
+      const entry = getFleetRole(onFleetReady);
+      if (entry.state === "ready" && entry.role) {
+        const text = formatFleetRoleTemplate(seg.template, entry.role);
+        if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
+      }
     } else {
       const text = String(seg.text || "");
       if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });

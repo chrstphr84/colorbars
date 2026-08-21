@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.15.0]
+
+### Added
+- Fleet Role bar segment: shows the logged-in Fleet user's role (Admin, Maintainer, Observer+, etc.), read from the Fleet server's /me endpoint using your existing session. Shows only when signed in to a Fleet server.
+
 ## [1.14.0]
 
 ### Added
@@ -153,6 +158,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.15.0]: #1150
 [1.14.0]: #1140
 [1.13.0]: #1130
 [1.12.0]: #1120

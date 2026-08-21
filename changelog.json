@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.15.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Fleet Role bar segment: shows the logged-in Fleet user's role (Admin, Maintainer, Observer+, etc.), read from the Fleet server's /me endpoint using your existing session. Shows only when signed in to a Fleet server."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.14.0",
     "sections": [
       {

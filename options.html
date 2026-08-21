@@ -387,6 +387,7 @@
             <button type="button" class="secondary" data-action="add-text">Text</button>
             <button type="button" class="secondary" data-action="add-pagetitle">Page Title</button>
             <button type="button" class="secondary" data-action="add-fleet">Fleet Server Info</button>
+            <button type="button" class="secondary" data-action="add-fleetrole">Fleet Role</button>
             <button type="button" class="secondary" data-action="add-browser">Browser Info</button>
           </div>
 
@@ -530,6 +531,41 @@
             Placeholders: <code>{browser}</code>, <code>{version}</code> (full), <code>{major}</code>,
             <code>{platform}</code>, <code>{arch}</code>. Read from the browser on each tab. Example:
             <code>{browser} {version} ({arch})</code>.
+          </p>
+        </div>
+      </div>
+    </template>
+
+    <template id="fleetrole-segment-template">
+      <div class="segment" data-role="segment">
+        <div class="segment-head">
+          <span class="seg-drag" draggable="true" title="Drag to a zone">⠿</span>
+          <span class="seg-name" data-role="seg-name">Fleet role</span>
+          <span class="seg-chip">Role</span>
+          <input data-seg-field="enabled" class="switch" type="checkbox" title="Enabled" />
+          <button type="button" class="danger" data-action="delete-segment">Delete</button>
+        </div>
+        <div class="segment-body">
+          <label>
+            Label
+            <input data-seg-field="label" type="text" placeholder="Fleet role" />
+          </label>
+          <label>
+            Justification
+            <select data-seg-field="justify">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label class="full">
+            Display Template
+            <input data-seg-field="template" type="text" placeholder="{role}" />
+          </label>
+          <p class="hint">
+            Placeholder: <code>{role}</code> — the logged-in Fleet user's role (e.g. Admin, Maintainer, Observer+).
+            Read from the Fleet server's <code>/me</code> endpoint using your existing session; shows only when
+            signed in to a Fleet server.
           </p>
         </div>
       </div>

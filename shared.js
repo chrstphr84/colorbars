@@ -49,6 +49,17 @@ const DEFAULT_PAGETITLE_SEGMENT = {
   justify: "left"
 };
 
+// A dynamic segment that shows the logged-in Fleet user's role, read from the
+// Fleet server's authenticated /me endpoint (session cookie). {role} placeholder.
+const DEFAULT_FLEETROLE_SEGMENT = {
+  id: "",
+  type: "fleetrole",
+  enabled: false,
+  label: "Fleet role",
+  template: "{role}",
+  justify: "right"
+};
+
 const DEFAULT_RULE = {
   id: "",
   enabled: true,
@@ -219,12 +230,19 @@ function isHostBlocked(blocklist, hostname) {
   return false;
 }
 
-const SEGMENT_TYPES = ["text", "fleet", "browser", "pagetitle"];
+const SEGMENT_TYPES = ["text", "fleet", "browser", "pagetitle", "fleetrole"];
+// Segment types that carry a {…} template but no free-text/token field.
+const TEMPLATE_SEGMENT_DEFAULTS = {
+  browser: () => DEFAULT_BROWSER_SEGMENT,
+  pagetitle: () => DEFAULT_PAGETITLE_SEGMENT,
+  fleetrole: () => DEFAULT_FLEETROLE_SEGMENT
+};
 
 function defaultSegmentForType(type) {
   if (type === "fleet") return structuredClone(DEFAULT_FLEET_SEGMENT);
   if (type === "browser") return structuredClone(DEFAULT_BROWSER_SEGMENT);
   if (type === "pagetitle") return structuredClone(DEFAULT_PAGETITLE_SEGMENT);
+  if (type === "fleetrole") return structuredClone(DEFAULT_FLEETROLE_SEGMENT);
   return structuredClone(DEFAULT_TEXT_SEGMENT);
 }
 
@@ -235,18 +253,20 @@ function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
   if (!merged.id) merged.id = `seg-${Date.now()}-${ruleIndex}-${segmentIndex}`;
   merged.enabled = Boolean(merged.enabled);
   merged.justify = JUSTIFY_VALUES.includes(merged.justify) ? merged.justify : "center";
-  const labels = { fleet: "Fleet server", browser: "Browser", pagetitle: "Page title", text: "Text" };
+  const labels = {
+    fleet: "Fleet server",
+    browser: "Browser",
+    pagetitle: "Page title",
+    fleetrole: "Fleet role",
+    text: "Text"
+  };
   merged.label = String(merged.label || labels[type]);
   if (type === "fleet") {
     merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
     merged.token = String(merged.token || "");
     delete merged.text;
-  } else if (type === "browser") {
-    merged.template = String(merged.template || DEFAULT_BROWSER_SEGMENT.template);
-    delete merged.text;
-    delete merged.token;
-  } else if (type === "pagetitle") {
-    merged.template = String(merged.template || DEFAULT_PAGETITLE_SEGMENT.template);
+  } else if (TEMPLATE_SEGMENT_DEFAULTS[type]) {
+    merged.template = String(merged.template || TEMPLATE_SEGMENT_DEFAULTS[type]().template);
     delete merged.text;
     delete merged.token;
   } else {
@@ -386,6 +406,46 @@ function formatBrowserTemplate(template, info) {
     })
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Human-friendly label for a Fleet role string (mirrors Fleet's capitalizeRole).
+function capitalizeRole(role) {
+  const r = String(role || "").trim();
+  if (!r) return "";
+  if (r === "observer_plus") return "Observer+";
+  if (r === "gitops") return "GitOps";
+  return r.charAt(0).toUpperCase() + r.slice(1);
+}
+
+// Compute the display role for a Fleet user object (global_role + teams[].role),
+// mirroring Fleet's generateRole().
+function fleetDisplayRole(user) {
+  if (!user || typeof user !== "object") return "";
+  const global = user.global_role || null;
+  const teams = Array.isArray(user.teams) ? user.teams : [];
+  if (global) return teams.length > 0 ? "Various" : capitalizeRole(global);
+  if (teams.length === 0) return "Unassigned";
+  if (teams.length === 1) return capitalizeRole(teams[0].role);
+  const roles = new Set(teams.map((t) => t && t.role));
+  return roles.size === 1 ? capitalizeRole(teams[0].role) : "Various";
+}
+
+// A /me response looks like a Fleet user payload when it carries a user with
+// role fields.
+function isFleetMeResponse(data) {
+  return (
+    data &&
+    typeof data === "object" &&
+    data.user &&
+    typeof data.user === "object" &&
+    ("global_role" in data.user || "teams" in data.user)
+  );
+}
+
+// Substitute the {role} placeholder in a fleet-role segment template.
+function formatFleetRoleTemplate(template, role) {
+  const tpl = String(template || DEFAULT_FLEETROLE_SEGMENT.template);
+  return tpl.replace(/\{role\}/g, role === undefined || role === null ? "" : String(role)).trim();
 }
 
 // Substitute the {title} placeholder in a page-title segment template.
