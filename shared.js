@@ -81,8 +81,24 @@ const DEFAULT_RULE = {
     textTransform: "uppercase",
     letterSpacing: "0.6"
   },
-  segments: [{ ...DEFAULT_TEXT_SEGMENT }]
+  segments: [{ ...DEFAULT_TEXT_SEGMENT }],
+  // Optional per-rule tab (document.title) renaming.
+  // mode: off | prepend | append | overwrite. prepend/append revert to the real
+  // title when the tab is focused; overwrite persists. github prepends
+  // "#<issue> - " on GitHub issue/PR pages and persists on focus.
+  tabTitle: { mode: "off", text: "", github: false }
 };
+
+const TAB_TITLE_MODES = ["off", "prepend", "append", "overwrite"];
+
+function normalizeTabTitle(raw) {
+  const t = raw && typeof raw === "object" ? raw : {};
+  return {
+    mode: TAB_TITLE_MODES.includes(t.mode) ? t.mode : "off",
+    text: String(t.text || ""),
+    github: Boolean(t.github)
+  };
+}
 
 const STORAGE_KEY = "domainTopBarRulesV1";
 const THEME_KEY = "colorbarsThemeV1";
@@ -266,6 +282,7 @@ function normalizeRules(rawRules) {
     };
     delete merged.style.text; // legacy single-text field now lives in segments
     merged.segments = normalizeSegments(rule, index);
+    merged.tabTitle = normalizeTabTitle(rule && rule.tabTitle);
     if (!merged.id) merged.id = `rule-${Date.now()}-${index}`;
     merged.enabled = Boolean(merged.enabled);
     merged.matchType = merged.matchType === "components" ? "components" : "domain";
@@ -427,6 +444,38 @@ function patternForUrl(href, wholeSite) {
   if (!url || !url.hostname) return null;
   if (wholeSite) return `*://${url.hostname}/*`;
   return `${url.protocol}//${url.hostname}${url.pathname}*`;
+}
+
+// Extract a GitHub issue/PR number from a URL, else null.
+function githubIssueNumber(href) {
+  const url = buildUrlForMatching(href);
+  if (!url || !/(^|\.)github\.com$/i.test(url.hostname)) return null;
+  const m = url.pathname.match(/^\/[^/]+\/[^/]+\/(?:issues|pull)\/(\d+)/);
+  return m ? m[1] : null;
+}
+
+// Compose a tab title from the page's real title and a rule's tabTitle config.
+// prepend/append only apply when the tab is NOT focused (they revert on focus);
+// overwrite and the GitHub issue prefix persist regardless of focus.
+function composeTabTitle(realTitle, cfg, focused, issueNum) {
+  const base = String(realTitle || "");
+  const text = cfg && cfg.text ? String(cfg.text) : "";
+  const mode = cfg ? cfg.mode : "off";
+  let t = base;
+  if (mode === "overwrite" && text) {
+    t = text;
+  } else if (!focused && text && (mode === "prepend" || mode === "append")) {
+    t = mode === "prepend" ? `${text} ${base}` : `${base} ${text}`;
+  }
+  if (cfg && cfg.github && issueNum) {
+    t = `#${issueNum} - ${t}`;
+  }
+  return t;
+}
+
+// Whether a rule's tabTitle config actually manages the title.
+function tabTitleManages(cfg) {
+  return !!cfg && ((cfg.mode !== "off" && cfg.text) || cfg.github);
 }
 
 // True when the extension can add a bar to this URL (content scripts don't run

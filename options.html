@@ -392,6 +392,37 @@
 
           <div class="segments" data-role="segments"></div>
           </details>
+
+          <details class="rule-section" data-section="tabtitle">
+          <summary class="section-summary">Tab Title</summary>
+          <p class="dnd-help">
+            Rename the browser tab on matching pages. Prepend/append revert to the page's real title when the tab is
+            focused; overwrite persists.
+          </p>
+          <div class="grid">
+            <label>
+              Mode
+              <select data-field="tabTitle.mode">
+                <option value="off">Off</option>
+                <option value="prepend">Prepend</option>
+                <option value="append">Append</option>
+                <option value="overwrite">Overwrite</option>
+              </select>
+            </label>
+            <label class="tabtitle-text">
+              Text
+              <input data-field="tabTitle.text" type="text" placeholder="PROD" />
+            </label>
+            <div class="grid-spacer" aria-hidden="true"></div>
+          </div>
+          <p class="hint tabtitle-warning" style="color: var(--danger)">
+            Overwrite replaces the page's title even when the tab is focused, hiding the real title.
+          </p>
+          <label class="inline">
+            <input data-field="tabTitle.github" class="switch" type="checkbox" />
+            Prepend GitHub issue/PR number (e.g. <code>#51484 - </code>; persists on focus)
+          </label>
+          </details>
         </article>
       </details>
     </template>

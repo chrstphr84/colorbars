@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.14.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Per-rule Tab Title: rename the browser tab on matching pages (prepend, append, or overwrite).",
+          "Prepend/append revert to the page's real title when the tab is focused (so the true title is a click away); overwrite persists, with a warning.",
+          "GitHub option: prepend the issue/PR number (e.g. \"#51484 - \") on GitHub issue/PR pages; persists on focus and never alters the page.",
+          "A Page Title segment reading the real title still works alongside tab renaming."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.13.0",
     "sections": [
       {

@@ -4,6 +4,13 @@ const HTML_PADDING_ATTR = "data-domain-top-bar-prev-padding-top";
 let appliedRule = null;
 const textMeasurer = document.createElement("canvas").getContext("2d");
 
+// The page's own title, tracked separately from document.title because the
+// tab-title feature may overwrite document.title. A Page Title segment reads
+// this so it always shows the real title.
+let realPageTitle = document.title;
+let tabTitleCfg = null; // matched rule's tabTitle, or null
+let cbManagedTitle = null; // the value we last wrote to document.title (loop guard)
+
 // Per-origin cache of Fleet /version lookups so each tab fetches at most once
 // per distinct token. state: "pending" | "ready" | "none".
 const fleetCache = new Map();
@@ -180,7 +187,7 @@ function resolveSegments(rule, onFleetReady) {
         if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
       }
     } else if (seg.type === "pagetitle") {
-      const text = formatPageTitleTemplate(seg.template, document.title);
+      const text = formatPageTitleTemplate(seg.template, realPageTitle);
       if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
     } else {
       const text = String(seg.text || "");
@@ -421,15 +428,48 @@ function setIndicator(color) {
   updateTabIndicator();
 }
 
-document.addEventListener("visibilitychange", updateTabIndicator);
+// ---- Tab title ----------------------------------------------------------
+function setDocTitle(value) {
+  cbManagedTitle = value;
+  document.title = value;
+}
 
-// Keep a Page Title segment current when the site changes document.title
-// (common on SPAs) without a full navigation.
+function applyTabTitle() {
+  if (!tabTitleManages(tabTitleCfg)) {
+    // Not managing (or no longer): restore the real title if we changed it.
+    if (cbManagedTitle !== null) {
+      setDocTitle(realPageTitle);
+      cbManagedTitle = null;
+    }
+    return;
+  }
+  const focused = !document.hidden;
+  const issueNum = tabTitleCfg.github ? githubIssueNumber(location.href) : null;
+  const next = composeTabTitle(realPageTitle, tabTitleCfg, focused, issueNum);
+  if (document.title !== next) setDocTitle(next);
+}
+
+function setTabTitle(cfg) {
+  tabTitleCfg = tabTitleManages(cfg) ? cfg : null;
+  applyTabTitle();
+}
+
+document.addEventListener("visibilitychange", () => {
+  updateTabIndicator();
+  applyTabTitle();
+});
+
+// Watch the page's own <title> changes (SPAs update it without navigating):
+// track the real title, refresh the bar (Page Title segment), and re-apply our
+// tab-title override. Our own writes are ignored via the cbManagedTitle guard.
 function watchTitle() {
   const titleEl = document.querySelector("title");
   if (!titleEl) return false;
   new MutationObserver(() => {
+    if (document.title === cbManagedTitle) return; // our own write
+    realPageTitle = document.title;
     if (appliedRule) applyRule(appliedRule);
+    applyTabTitle();
   }).observe(titleEl, { childList: true, characterData: true, subtree: true });
   return true;
 }
@@ -443,14 +483,16 @@ function evaluateAndApply(rules) {
   applyRule(matched);
   const inScope = matched && tabIndicatorApplies(indicatorScope, matched.id);
   setIndicator(inScope && matched.style ? matched.style.backgroundColor : null);
+  setTabTitle(matched ? matched.tabTitle : null);
 }
 
 let snoozeTimer = null;
 
 function suppress() {
-  // No bar on this tab → also drop any tab indicator (restore the real favicon).
+  // No bar on this tab → also drop the tab indicator and any title override.
   removeBar();
   setIndicator(null);
+  setTabTitle(null);
 }
 
 function loadAndApply() {
@@ -498,6 +540,7 @@ function onMaybeUrlChange() {
   if (location.href === cbLastHref) return;
   cbLastHref = location.href;
   faviconOriginalHref = null; // the new page may have its own favicon
+  if (document.title !== cbManagedTitle) realPageTitle = document.title; // capture real title at nav
   loadAndApply();
 }
 window.addEventListener("popstate", onMaybeUrlChange);

@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.14.0]
+
+### Added
+- Per-rule Tab Title: rename the browser tab on matching pages (prepend, append, or overwrite).
+- Prepend/append revert to the page's real title when the tab is focused (so the true title is a click away); overwrite persists, with a warning.
+- GitHub option: prepend the issue/PR number (e.g. "#51484 - ") on GitHub issue/PR pages; persists on focus and never alters the page.
+- A Page Title segment reading the real title still works alongside tab renaming.
+
 ## [1.13.0]
 
 ### Added
@@ -145,6 +153,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.14.0]: #1140
 [1.13.0]: #1130
 [1.12.0]: #1120
 [1.11.2]: #1112

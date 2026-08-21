@@ -485,6 +485,14 @@ function syncVisibility(root, rule) {
     blurInput.disabled = opaque;
     blurInput.value = opaque ? "" : rule.style.blur ?? "";
   }
+
+  // Tab title: the text field only matters when a mode is chosen; the warning
+  // only applies to overwrite.
+  const ttMode = (rule.tabTitle && rule.tabTitle.mode) || "off";
+  const ttText = root.querySelector(".tabtitle-text");
+  if (ttText) ttText.style.display = ttMode !== "off" ? "flex" : "none";
+  const ttWarn = root.querySelector(".tabtitle-warning");
+  if (ttWarn) ttWarn.style.display = ttMode === "overwrite" ? "block" : "none";
 }
 
 function validateRule(rule) {
