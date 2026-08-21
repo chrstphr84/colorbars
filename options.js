@@ -9,6 +9,7 @@ function genSegId() {
 const state = {
   rules: [],
   openById: {},
+  sectionOpen: {}, // `${ruleId}|${section}` -> bool, so re-renders keep sections open
   globalEnabled: true,
   stash: {},
   defaults: null // set on load via normalizeDefaults
@@ -721,6 +722,16 @@ function render() {
     shell.open = Boolean(state.openById[rule.id]);
     shell.addEventListener("toggle", () => {
       state.openById[rule.id] = shell.open;
+    });
+
+    // Collapsible sections (Bar Appearance / Bar Text), collapsed by default;
+    // remember open state so re-renders (e.g. adding a segment) don't collapse them.
+    shell.querySelectorAll(".rule-section").forEach((section) => {
+      const key = `${rule.id}|${section.dataset.section}`;
+      section.open = Boolean(state.sectionOpen[key]);
+      section.addEventListener("toggle", () => {
+        state.sectionOpen[key] = section.open;
+      });
     });
 
     shell.querySelectorAll("[data-field]").forEach((input) => {

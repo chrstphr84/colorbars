@@ -283,7 +283,8 @@
             </label>
           </div>
 
-          <h3>Bar Appearance</h3>
+          <details class="rule-section" data-section="appearance">
+          <summary class="section-summary">Bar Appearance</summary>
           <div class="grid">
             <!-- Row 1: Bar Color, Bar Height -->
             <label>
@@ -369,8 +370,10 @@
             </label>
             <div class="grid-spacer" aria-hidden="true"></div>
           </div>
+          </details>
 
-          <h3>Bar Text</h3>
+          <details class="rule-section" data-section="text">
+          <summary class="section-summary">Bar Text</summary>
           <p class="dnd-help" data-role="dnd-help">
             Drag each text element into a zone to place it. Drag elements within a zone to reorder them.
           </p>
@@ -380,13 +383,14 @@
             <div class="dnd-zone" data-zone="right"><span class="zone-label">Right</span></div>
           </div>
 
-          <div class="segments" data-role="segments"></div>
-
           <div class="row row-wrap">
-            <button type="button" class="secondary" data-action="add-text">Add Text</button>
-            <button type="button" class="secondary" data-action="add-fleet">Add Fleet Server Info</button>
-            <button type="button" class="secondary" data-action="add-browser">Add Browser Info</button>
+            <button type="button" class="secondary" data-action="add-text">Text</button>
+            <button type="button" class="secondary" data-action="add-fleet">Fleet Server Info</button>
+            <button type="button" class="secondary" data-action="add-browser">Browser Info</button>
           </div>
+
+          <div class="segments" data-role="segments"></div>
+          </details>
         </article>
       </details>
     </template>

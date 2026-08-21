@@ -266,6 +266,59 @@ button.danger:hover {
   gap: 14px;
 }
 
+/* Collapsible sections within a rule (Bar Appearance, Bar Text). */
+.rule-section {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.rule-section > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.rule-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rule-section > summary::before {
+  content: "\25B8"; /* ▸ */
+  font-size: 10px;
+  transition: transform 0.12s ease;
+}
+
+.rule-section[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.rule-section[open] > summary {
+  margin-bottom: 14px;
+}
+
+/* Restore vertical rhythm inside an open section (details isn't a flex parent). */
+.rule-section[open] > .grid {
+  margin-top: 0;
+}
+
+.rule-section .dnd-help,
+.rule-section .dnd-bar,
+.rule-section .row,
+.rule-section .segments {
+  margin-bottom: 14px;
+}
+
+.rule-section .segments {
+  margin-bottom: 0;
+}
+
 /* Collapsible Global-section panels reuse the rule styling but must let the
    color-picker popover overflow, so round the summary corners directly instead
    of clipping with overflow:hidden. */

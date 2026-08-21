@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.11.2",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Rule sections (Bar Appearance, Bar Text) are now collapsible and collapsed by default, keeping expanded rules shorter.",
+          "Moved the Text / Fleet Server Info / Browser Info buttons to the top of the Bar Text section (below the mock-up) and dropped the \"Add\" prefix."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.11.1",
     "sections": [
       {

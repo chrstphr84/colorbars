@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.11.2]
+
+### Changed
+- Rule sections (Bar Appearance, Bar Text) are now collapsible and collapsed by default, keeping expanded rules shorter.
+- Moved the Text / Fleet Server Info / Browser Info buttons to the top of the Bar Text section (below the mock-up) and dropped the "Add" prefix.
+
 ## [1.11.1]
 
 ### Changed
@@ -129,6 +135,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.11.2]: #1112
 [1.11.1]: #1111
 [1.11.0]: #1110
 [1.10.1]: #1101
