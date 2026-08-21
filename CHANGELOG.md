@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.11.1]
+
+### Changed
+- Removed the global Display toggle; the in-rule bar mock-up is always shown.
+- Removed the "Saved" toast — settings auto-save silently; validation errors are still shown.
+
 ## [1.11.0]
 
 ### Added
@@ -123,6 +129,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.11.1]: #1111
 [1.11.0]: #1110
 [1.10.1]: #1101
 [1.10.0]: #1100

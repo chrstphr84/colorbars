@@ -659,13 +659,6 @@ select:disabled {
   margin: 0 0 8px;
 }
 
-/* When the mock-up is disabled, hide it everywhere; justification is then set
-   via each segment's Justification dropdown. */
-body.hide-mockup .dnd-bar,
-body.hide-mockup [data-role="dnd-help"] {
-  display: none;
-}
-
 .dnd-bar {
   display: flex;
   gap: 8px;

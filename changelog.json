@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.11.1",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Removed the global Display toggle; the in-rule bar mock-up is always shown.",
+          "Removed the \"Saved\" toast — settings auto-save silently; validation errors are still shown."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.11.0",
     "sections": [
       {

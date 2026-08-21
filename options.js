@@ -71,22 +71,6 @@ themeToggle.addEventListener("click", (event) => {
 });
 
 /* ------------------------------------------------------ Mock-up toggle */
-const mockupToggle = document.getElementById("mockup-toggle");
-let showMockup = true;
-
-function applyMockupVisibility() {
-  document.body.classList.toggle("hide-mockup", !showMockup);
-  mockupToggle.checked = showMockup;
-  const mockupMeta = document.getElementById("mockup-meta");
-  if (mockupMeta) mockupMeta.textContent = showMockup ? "Mock-up shown" : "Mock-up hidden";
-}
-
-mockupToggle.addEventListener("change", () => {
-  showMockup = mockupToggle.checked;
-  chrome.storage.sync.set({ [MOCKUP_KEY]: showMockup });
-  applyMockupVisibility();
-});
-
 /* ------------------------------------------------ Tab indicator toggle */
 const tabIndicatorToggle = document.getElementById("tab-indicator-toggle");
 const tabScopeBlock = document.getElementById("tab-indicator-scope");
@@ -530,7 +514,11 @@ function validateRule(rule) {
   return "";
 }
 
-function save(showSavedToast = false) {
+// Settings auto-save on every change. We no longer surface a "Saved" toast
+// (it was inconsistent across settings and just added noise); validation
+// errors are still shown. The unused first argument is kept so existing
+// call sites don't need to change.
+function save() {
   const next = state.rules.map((rule) => coerceRule(rule));
   for (const rule of next) {
     const error = validateRule(rule);
@@ -544,7 +532,6 @@ function save(showSavedToast = false) {
     { [STORAGE_KEY]: next, [GLOBAL_KEY]: state.globalEnabled, [STASH_KEY]: state.stash },
     () => {
       state.rules = next;
-      if (showSavedToast) showToast("Saved", false, 800);
     }
   );
 }
@@ -957,7 +944,6 @@ if (versionEl) {
 }
 
 loadTheme();
-loadMockupPref();
 loadTabIndicatorPref();
 loadSwatches(() => {
   load();
@@ -967,13 +953,6 @@ function loadTheme() {
   chrome.storage.sync.get([THEME_KEY], (items) => {
     themePref = THEME_VALUES.includes(items[THEME_KEY]) ? items[THEME_KEY] : "auto";
     applyTheme();
-  });
-}
-
-function loadMockupPref() {
-  chrome.storage.sync.get([MOCKUP_KEY], (items) => {
-    showMockup = items[MOCKUP_KEY] !== false; // default on
-    applyMockupVisibility();
   });
 }
 

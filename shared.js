@@ -76,7 +76,6 @@ const DEFAULT_RULE = {
 const STORAGE_KEY = "domainTopBarRulesV1";
 const THEME_KEY = "colorbarsThemeV1";
 const SWATCHES_KEY = "colorbarsSwatchesV1";
-const MOCKUP_KEY = "colorbarsShowMockupV1";
 const GLOBAL_KEY = "colorbarsGlobalEnabledV1";
 const STASH_KEY = "colorbarsPrevEnabledV1";
 const DEFAULTSTYLE_KEY = "colorbarsDefaultRuleV1";

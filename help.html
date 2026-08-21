@@ -48,7 +48,6 @@
           <li><strong>Default style for new rules</strong> — height, placement, colors, font, and transform applied to each newly-added rule.</li>
           <li><strong>Domain blocklist</strong> — one domain per line where Colorbars never shows, even if a rule matches. Supports <code>*</code> wildcards; a bare domain also covers its subdomains.</li>
           <li><strong>Tab indicator</strong> — replaces the tab's favicon with a solid rounded tile in the matched rule's color, so you can spot flagged tabs at a glance. It appears only on <em>background</em> tabs; the active tab keeps its real favicon so the page you're viewing is never obscured. Extensions can't draw on the tab itself, so this rides on the favicon.</li>
-          <li><strong>Show bar layout mock-up inside rules</strong> — toggles the in-rule drag-and-drop mock-up (moved here from Appearance).</li>
         </ul>
       </section>
 
@@ -103,7 +102,7 @@
           <li>Segments are placed into independent zones and never overlap.</li>
           <li>Segments sharing a zone stack horizontally, in list order.</li>
           <li>Use the per-rule drag-and-drop mock-up to drag any segment (by its chip or the <code>⠿</code> handle) into a zone, and drag segments within a zone to reorder them.</li>
-          <li>Prefer dropdowns? Turn off <strong>Show bar layout mock-up inside rules</strong> in the Global section; each segment's <strong>Justification</strong> dropdown then sets its placement directly.</li>
+          <li>Prefer dropdowns to dragging? Each segment's <strong>Justification</strong> dropdown sets its placement directly.</li>
           <li>Tip: to show version and branch in different places, add two Fleet Server Info segments — e.g. one templated <code>{version}</code> on the left and another <code>{branch}</code> on the right.</li>
         </ul>
       </section>
