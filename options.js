@@ -415,7 +415,7 @@ function syncVisibility(root, rule) {
   if (wildcardHint) {
     wildcardHint.innerHTML =
       rule.assumeWildcards !== false
-        ? 'Wildcards <code>*</code> are assumed for any unassigned components.'
+        ? 'Wildcards <code>*</code> are assumed for the scheme and path when omitted. Everything else matches as typed — add <code>*</code> anywhere to wildcard any part of the URL (e.g. <code>*.example.com</code> for subdomains).'
         : 'Wildcards <code>*</code> must be entered manually for any desired components.';
   }
 

@@ -64,7 +64,7 @@
         <h2>Rule Matching</h2>
         <ul>
           <li>Domain Pattern mode accepts a single wildcard pattern. Example: <code>*.example.com/admin/*</code>.</li>
-          <li>If scheme is omitted in Domain Pattern mode, <code>https://</code> is assumed.</li>
+          <li>With <strong>Wildcards</strong> on, an omitted scheme and path are wildcarded (any scheme, any path); everything else matches as typed. You can place <code>*</code> anywhere to wildcard any part of the URL. For subdomains, prefix the host with <code>*.</code> (e.g. <code>*.example.com</code>) — note that <code>*.example.com</code> matches subdomains but not the bare <code>example.com</code>.</li>
           <li>URL Components mode supports scheme/prefix, host, path, port, and query options.</li>
           <li>Domain Pattern mode and URL Components mode are mutually exclusive to avoid conflicts.</li>
           <li>When multiple rules match, earlier URL components take precedence (scheme, host, path, port, query).</li>

@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.10.1",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Domain Pattern with Wildcards on now matches the host as typed. Previously it silently required a subdomain, so a pattern like qa.example.com/* never matched qa.example.com itself. Add a *. prefix to include subdomains."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.10.0",
     "sections": [
       {

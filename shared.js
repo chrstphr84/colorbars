@@ -423,12 +423,11 @@ function normalizeDomainPattern(rawPattern, assumeWildcards = true) {
   const scheme = schemeSplit[0];
   let rest = schemeSplit.slice(1).join("://");
   const firstDelimiterIndex = rest.search(/[/?#]/);
-  let hostPort = firstDelimiterIndex >= 0 ? rest.slice(0, firstDelimiterIndex) : rest;
+  const hostPort = firstDelimiterIndex >= 0 ? rest.slice(0, firstDelimiterIndex) : rest;
   let suffix = firstDelimiterIndex >= 0 ? rest.slice(firstDelimiterIndex) : "";
 
-  if (!hasScheme && hostPort && !hostPort.startsWith("*")) {
-    hostPort = `*.${hostPort}`;
-  }
+  // Assumed wildcards fill only the unassigned components (scheme + path). The
+  // host is matched exactly as typed; add "*." yourself to include subdomains.
 
   if (!suffix) {
     suffix = "/*";
