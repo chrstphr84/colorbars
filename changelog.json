@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.13.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Page Title bar segment: shows the page's title ({title}) and updates as it changes — useful when a site's sticky-header title is hidden behind the bar."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.12.0",
     "sections": [
       {

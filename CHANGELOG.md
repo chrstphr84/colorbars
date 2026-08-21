@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.13.0]
+
+### Added
+- Page Title bar segment: shows the page's title ({title}) and updates as it changes — useful when a site's sticky-header title is hidden behind the bar.
+
 ## [1.12.0]
 
 ### Added
@@ -140,6 +145,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.13.0]: #1130
 [1.12.0]: #1120
 [1.11.2]: #1112
 [1.11.1]: #1111

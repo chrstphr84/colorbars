@@ -179,6 +179,9 @@ function resolveSegments(rule, onFleetReady) {
         const text = formatBrowserTemplate(seg.template, info);
         if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
       }
+    } else if (seg.type === "pagetitle") {
+      const text = formatPageTitleTemplate(seg.template, document.title);
+      if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
     } else {
       const text = String(seg.text || "");
       if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
@@ -419,6 +422,20 @@ function setIndicator(color) {
 }
 
 document.addEventListener("visibilitychange", updateTabIndicator);
+
+// Keep a Page Title segment current when the site changes document.title
+// (common on SPAs) without a full navigation.
+function watchTitle() {
+  const titleEl = document.querySelector("title");
+  if (!titleEl) return false;
+  new MutationObserver(() => {
+    if (appliedRule) applyRule(appliedRule);
+  }).observe(titleEl, { childList: true, characterData: true, subtree: true });
+  return true;
+}
+if (!watchTitle()) {
+  document.addEventListener("DOMContentLoaded", watchTitle, { once: true });
+}
 
 function evaluateAndApply(rules) {
   const normalized = normalizeRules(rules);

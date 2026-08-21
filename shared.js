@@ -38,6 +38,17 @@ const DEFAULT_BROWSER_SEGMENT = {
   justify: "right"
 };
 
+// A dynamic segment that shows the page's title (document.title), handy when a
+// site's own sticky header/title is obscured by the bar. {title} placeholder.
+const DEFAULT_PAGETITLE_SEGMENT = {
+  id: "",
+  type: "pagetitle",
+  enabled: false,
+  label: "Page title",
+  template: "{title}",
+  justify: "left"
+};
+
 const DEFAULT_RULE = {
   id: "",
   enabled: true,
@@ -192,27 +203,34 @@ function isHostBlocked(blocklist, hostname) {
   return false;
 }
 
+const SEGMENT_TYPES = ["text", "fleet", "browser", "pagetitle"];
+
 function defaultSegmentForType(type) {
   if (type === "fleet") return structuredClone(DEFAULT_FLEET_SEGMENT);
   if (type === "browser") return structuredClone(DEFAULT_BROWSER_SEGMENT);
+  if (type === "pagetitle") return structuredClone(DEFAULT_PAGETITLE_SEGMENT);
   return structuredClone(DEFAULT_TEXT_SEGMENT);
 }
 
 function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
   const raw = rawSegment && typeof rawSegment === "object" ? rawSegment : {};
-  const type = raw.type === "fleet" ? "fleet" : raw.type === "browser" ? "browser" : "text";
+  const type = SEGMENT_TYPES.includes(raw.type) ? raw.type : "text";
   const merged = { ...defaultSegmentForType(type), ...raw, type };
   if (!merged.id) merged.id = `seg-${Date.now()}-${ruleIndex}-${segmentIndex}`;
   merged.enabled = Boolean(merged.enabled);
   merged.justify = JUSTIFY_VALUES.includes(merged.justify) ? merged.justify : "center";
-  const fallbackLabel = type === "fleet" ? "Fleet server" : type === "browser" ? "Browser" : "Text";
-  merged.label = String(merged.label || fallbackLabel);
+  const labels = { fleet: "Fleet server", browser: "Browser", pagetitle: "Page title", text: "Text" };
+  merged.label = String(merged.label || labels[type]);
   if (type === "fleet") {
     merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
     merged.token = String(merged.token || "");
     delete merged.text;
   } else if (type === "browser") {
     merged.template = String(merged.template || DEFAULT_BROWSER_SEGMENT.template);
+    delete merged.text;
+    delete merged.token;
+  } else if (type === "pagetitle") {
+    merged.template = String(merged.template || DEFAULT_PAGETITLE_SEGMENT.template);
     delete merged.text;
     delete merged.token;
   } else {
@@ -351,6 +369,12 @@ function formatBrowserTemplate(template, info) {
     })
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Substitute the {title} placeholder in a page-title segment template.
+function formatPageTitleTemplate(template, title) {
+  const tpl = String(template || DEFAULT_PAGETITLE_SEGMENT.template);
+  return tpl.replace(/\{title\}/g, title === undefined || title === null ? "" : String(title)).trim();
 }
 
 // Normalize architecture + bitness (from UA Client Hints) to a familiar label.

@@ -385,6 +385,7 @@
 
           <div class="row row-wrap">
             <button type="button" class="secondary" data-action="add-text">Text</button>
+            <button type="button" class="secondary" data-action="add-pagetitle">Page Title</button>
             <button type="button" class="secondary" data-action="add-fleet">Fleet Server Info</button>
             <button type="button" class="secondary" data-action="add-browser">Browser Info</button>
           </div>
@@ -498,6 +499,40 @@
             Placeholders: <code>{browser}</code>, <code>{version}</code> (full), <code>{major}</code>,
             <code>{platform}</code>, <code>{arch}</code>. Read from the browser on each tab. Example:
             <code>{browser} {version} ({arch})</code>.
+          </p>
+        </div>
+      </div>
+    </template>
+
+    <template id="pagetitle-segment-template">
+      <div class="segment" data-role="segment">
+        <div class="segment-head">
+          <span class="seg-drag" draggable="true" title="Drag to a zone">⠿</span>
+          <span class="seg-name" data-role="seg-name">Page title</span>
+          <span class="seg-chip">Title</span>
+          <input data-seg-field="enabled" class="switch" type="checkbox" title="Enabled" />
+          <button type="button" class="danger" data-action="delete-segment">Delete</button>
+        </div>
+        <div class="segment-body">
+          <label>
+            Label
+            <input data-seg-field="label" type="text" placeholder="Page title" />
+          </label>
+          <label>
+            Justification
+            <select data-seg-field="justify">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label class="full">
+            Display Template
+            <input data-seg-field="template" type="text" placeholder="{title}" />
+          </label>
+          <p class="hint">
+            Placeholder: <code>{title}</code> (the page's title). Updates as the page's title changes. Useful when a
+            site's own sticky header/title is hidden behind the bar.
           </p>
         </div>
       </div>
