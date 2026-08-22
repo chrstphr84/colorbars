@@ -109,7 +109,7 @@ const DEFAULT_RULE = {
   // Optional per-rule tab (document.title) renaming.
   // mode: off | prepend | append | overwrite. prepend/append revert to the real
   // title when the tab is focused; overwrite persists. github prepends
-  // "#<issue> - " on GitHub issue/PR pages and persists on focus.
+  // "#<issue> " on GitHub issue/PR pages and persists on focus.
   tabTitle: { mode: "off", text: "", github: false }
 };
 
@@ -553,7 +553,12 @@ function githubIssueNumber(href) {
 // prepend/append only apply when the tab is NOT focused (they revert on focus);
 // overwrite and the GitHub issue prefix persist regardless of focus.
 function composeTabTitle(realTitle, cfg, focused, issueNum) {
-  const base = String(realTitle || "");
+  let base = String(realTitle || "");
+  const github = !!(cfg && cfg.github && issueNum);
+  // Idempotent: drop any issue prefix already on the title so re-applying (or a
+  // title we previously set being read back) can't stack it. Only runs on
+  // GitHub issue/PR pages, whose real titles never start with "#<number>".
+  if (github) base = base.replace(/^#\d+(?:\s*-)?\s+/, "");
   const text = cfg && cfg.text ? String(cfg.text) : "";
   const mode = cfg ? cfg.mode : "off";
   let t = base;
@@ -562,8 +567,8 @@ function composeTabTitle(realTitle, cfg, focused, issueNum) {
   } else if (!focused && text && (mode === "prepend" || mode === "append")) {
     t = mode === "prepend" ? `${text} ${base}` : `${base} ${text}`;
   }
-  if (cfg && cfg.github && issueNum) {
-    t = `#${issueNum} - ${t}`;
+  if (github) {
+    t = `#${issueNum} ${t}`;
   }
   return t;
 }

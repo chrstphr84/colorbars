@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.5]
+
+### Fixed
+- Tab Title GitHub prefix no longer doubles the issue number (e.g. "#48222 - #48222 - …"); it's now idempotent.
+- The GitHub issue number is separated from the title by a single space instead of " - " to save tab space (e.g. "#12345 Fix the login bug").
+
 ## [1.17.4]
 
 ### Fixed
@@ -49,7 +55,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 ### Added
 - Per-rule Tab Title: rename the browser tab on matching pages (prepend, append, or overwrite).
 - Prepend/append revert to the page's real title when the tab is focused (so the true title is a click away); overwrite persists, with a warning.
-- GitHub option: prepend the issue/PR number (e.g. "#1234 - ") on GitHub issue/PR pages; persists on focus and never alters the page.
+- GitHub option: prepend the issue/PR number (e.g. "#1234 ") on GitHub issue/PR pages; persists on focus and never alters the page.
 - A Page Title segment reading the real title still works alongside tab renaming.
 
 ## [1.13.0]
@@ -189,6 +195,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.5]: #1175
 [1.17.4]: #1174
 [1.17.3]: #1173
 [1.17.2]: #1172

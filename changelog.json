@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.17.5",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Tab Title GitHub prefix no longer doubles the issue number (e.g. \"#48222 - #48222 - …\"); it's now idempotent.",
+          "The GitHub issue number is separated from the title by a single space instead of \" - \" to save tab space (e.g. \"#12345 Fix the login bug\")."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.4",
     "sections": [
       {
@@ -85,7 +97,7 @@
         "items": [
           "Per-rule Tab Title: rename the browser tab on matching pages (prepend, append, or overwrite).",
           "Prepend/append revert to the page's real title when the tab is focused (so the true title is a click away); overwrite persists, with a warning.",
-          "GitHub option: prepend the issue/PR number (e.g. \"#1234 - \") on GitHub issue/PR pages; persists on focus and never alters the page.",
+          "GitHub option: prepend the issue/PR number (e.g. \"#1234 \") on GitHub issue/PR pages; persists on focus and never alters the page.",
           "A Page Title segment reading the real title still works alongside tab renaming."
         ]
       }
