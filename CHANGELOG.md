@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.1]
+
+### Fixed
+- Fleet Role segment now actually shows the role: it authenticates the /me request with the session token from Fleet's cookie (the server requires the Authorization header, which the cookie alone didn't provide).
+
 ## [1.17.0]
 
 ### Added
@@ -169,6 +174,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.1]: #1171
 [1.17.0]: #1170
 [1.16.0]: #1160
 [1.15.0]: #1150

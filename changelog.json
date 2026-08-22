@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.17.1",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Fleet Role segment now actually shows the role: it authenticates the /me request with the session token from Fleet's cookie (the server requires the Authorization header, which the cookie alone didn't provide)."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.0",
     "sections": [
       {

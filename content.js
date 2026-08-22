@@ -57,13 +57,26 @@ function getFleetInfo(token, onReady) {
   return entry;
 }
 
-// Logged-in Fleet user's role via the authenticated /me endpoint (the session
-// cookie authenticates the same-origin request). Fetched at most once per tab.
+// Fleet stores its session token in a cookie (set client-side by js-cookie, so
+// it's readable here). The server authenticates the API via the Authorization
+// header, not the cookie, so we read the token and send it as a Bearer header.
+function fleetAuthToken() {
+  const c = document.cookie || "";
+  const host = c.match(/(?:^|;\s*)__Host-token=([^;]+)/); // HTTPS
+  if (host) return decodeURIComponent(host[1]);
+  const plain = c.match(/(?:^|;\s*)token=([^;]+)/); // HTTP
+  return plain ? decodeURIComponent(plain[1]) : "";
+}
+
+// Logged-in Fleet user's role via the authenticated /me endpoint. Fetched at
+// most once per tab.
 let fleetRoleCache = null; // { state: "pending"|"ready"|"none", role }
 function getFleetRole(onReady) {
   if (fleetRoleCache) return fleetRoleCache;
   fleetRoleCache = { state: "pending", role: "" };
-  fetch(`${location.origin}/api/latest/fleet/me`, { credentials: "include", cache: "no-store" })
+  const token = fleetAuthToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  fetch(`${location.origin}/api/latest/fleet/me`, { credentials: "include", headers, cache: "no-store" })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       fleetRoleCache = isFleetMeResponse(data)
