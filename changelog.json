@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.17.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Sticky Header bar segment: shows the text of a page element matched by a CSS selector (default: GitHub's sticky issue/PR title), updating live as the page changes. Unlike Page Title (which reads document.title), this captures a site's own sticky-header text and can be pointed at any element/site."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.16.0",
     "sections": [
       {

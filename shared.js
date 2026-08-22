@@ -60,6 +60,19 @@ const DEFAULT_FLEETROLE_SEGMENT = {
   justify: "right"
 };
 
+// A dynamic segment that shows the text of a page element matched by a CSS
+// selector — e.g. a site's sticky-header title. Default targets GitHub's sticky
+// issue/PR title; editable for other sites. {text} placeholder.
+const DEFAULT_ELEMENT_SEGMENT = {
+  id: "",
+  type: "element",
+  enabled: false,
+  label: "Sticky header",
+  selector: '[class*="StickyHeaderTitle-module__stickyTitleLink"]',
+  template: "{text}",
+  justify: "left"
+};
+
 const DEFAULT_RULE = {
   id: "",
   enabled: true,
@@ -230,7 +243,7 @@ function isHostBlocked(blocklist, hostname) {
   return false;
 }
 
-const SEGMENT_TYPES = ["text", "fleet", "browser", "pagetitle", "fleetrole"];
+const SEGMENT_TYPES = ["text", "fleet", "browser", "pagetitle", "fleetrole", "element"];
 // Segment types that carry a {…} template but no free-text/token field.
 const TEMPLATE_SEGMENT_DEFAULTS = {
   browser: () => DEFAULT_BROWSER_SEGMENT,
@@ -243,6 +256,7 @@ function defaultSegmentForType(type) {
   if (type === "browser") return structuredClone(DEFAULT_BROWSER_SEGMENT);
   if (type === "pagetitle") return structuredClone(DEFAULT_PAGETITLE_SEGMENT);
   if (type === "fleetrole") return structuredClone(DEFAULT_FLEETROLE_SEGMENT);
+  if (type === "element") return structuredClone(DEFAULT_ELEMENT_SEGMENT);
   return structuredClone(DEFAULT_TEXT_SEGMENT);
 }
 
@@ -258,6 +272,7 @@ function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
     browser: "Browser",
     pagetitle: "Page title",
     fleetrole: "Fleet role",
+    element: "Sticky header",
     text: "Text"
   };
   merged.label = String(merged.label || labels[type]);
@@ -265,6 +280,11 @@ function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
     merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
     merged.token = String(merged.token || "");
     delete merged.text;
+  } else if (type === "element") {
+    merged.template = String(merged.template || DEFAULT_ELEMENT_SEGMENT.template);
+    merged.selector = String(merged.selector || DEFAULT_ELEMENT_SEGMENT.selector);
+    delete merged.text;
+    delete merged.token;
   } else if (TEMPLATE_SEGMENT_DEFAULTS[type]) {
     merged.template = String(merged.template || TEMPLATE_SEGMENT_DEFAULTS[type]().template);
     delete merged.text;
@@ -446,6 +466,12 @@ function isFleetMeResponse(data) {
 function formatFleetRoleTemplate(template, role) {
   const tpl = String(template || DEFAULT_FLEETROLE_SEGMENT.template);
   return tpl.replace(/\{role\}/g, role === undefined || role === null ? "" : String(role)).trim();
+}
+
+// Substitute the {text} placeholder in an element segment template.
+function formatElementTemplate(template, text) {
+  const tpl = String(template || DEFAULT_ELEMENT_SEGMENT.template);
+  return tpl.replace(/\{text\}/g, text === undefined || text === null ? "" : String(text)).trim();
 }
 
 // Substitute the {title} placeholder in a page-title segment template.

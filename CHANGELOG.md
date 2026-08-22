@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.0]
+
+### Added
+- Sticky Header bar segment: shows the text of a page element matched by a CSS selector (default: GitHub's sticky issue/PR title), updating live as the page changes. Unlike Page Title (which reads document.title), this captures a site's own sticky-header text and can be pointed at any element/site.
+
 ## [1.16.0]
 
 ### Added
@@ -164,6 +169,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.0]: #1170
 [1.16.0]: #1160
 [1.15.0]: #1150
 [1.14.0]: #1140

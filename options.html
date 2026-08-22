@@ -392,6 +392,7 @@
           <div class="row row-wrap">
             <button type="button" class="secondary" data-action="add-text">Text</button>
             <button type="button" class="secondary" data-action="add-pagetitle">Page Title</button>
+            <button type="button" class="secondary" data-action="add-element">Sticky Header</button>
             <button type="button" class="secondary" data-action="add-fleet">Fleet Server Info</button>
             <button type="button" class="secondary" data-action="add-fleetrole">Fleet Role</button>
             <button type="button" class="secondary" data-action="add-browser">Browser Info</button>
@@ -537,6 +538,45 @@
             Placeholders: <code>{browser}</code>, <code>{version}</code> (full), <code>{major}</code>,
             <code>{platform}</code>, <code>{arch}</code>. Read from the browser on each tab. Example:
             <code>{browser} {version} ({arch})</code>.
+          </p>
+        </div>
+      </div>
+    </template>
+
+    <template id="element-segment-template">
+      <div class="segment" data-role="segment">
+        <div class="segment-head">
+          <span class="seg-drag" draggable="true" title="Drag to a zone">⠿</span>
+          <span class="seg-name" data-role="seg-name">Sticky header</span>
+          <span class="seg-chip">Element</span>
+          <input data-seg-field="enabled" class="switch" type="checkbox" title="Enabled" />
+          <button type="button" class="danger" data-action="delete-segment">Delete</button>
+        </div>
+        <div class="segment-body">
+          <label>
+            Label
+            <input data-seg-field="label" type="text" placeholder="Sticky header" />
+          </label>
+          <label>
+            Justification
+            <select data-seg-field="justify">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label class="full">
+            CSS Selector
+            <input data-seg-field="selector" type="text" spellcheck="false" placeholder='[class*="StickyHeaderTitle-module__stickyTitleLink"]' />
+          </label>
+          <label class="full">
+            Display Template
+            <input data-seg-field="template" type="text" placeholder="{text}" />
+          </label>
+          <p class="hint">
+            Shows the text of the first element matching the CSS selector (<code>{text}</code>), updating as the page
+            changes. Defaults to GitHub's sticky issue/PR title; point it at any element on any site. Shows nothing if
+            no element matches.
           </p>
         </div>
       </div>

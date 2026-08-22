@@ -216,6 +216,12 @@ function resolveSegments(rule, onFleetReady) {
         const text = formatFleetRoleTemplate(seg.template, entry.role);
         if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
       }
+    } else if (seg.type === "element") {
+      const raw = readElementText(seg.selector);
+      if (raw) {
+        const text = formatElementTemplate(seg.template, raw);
+        if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
+      }
     } else {
       const text = String(seg.text || "");
       if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });
@@ -504,6 +510,53 @@ if (!watchTitle()) {
   document.addEventListener("DOMContentLoaded", watchTitle, { once: true });
 }
 
+// ---- Element (sticky-header) segments -----------------------------------
+function readElementText(selector) {
+  if (!selector) return "";
+  try {
+    const el = document.querySelector(selector);
+    return el ? (el.textContent || "").trim() : "";
+  } catch (_) {
+    return ""; // invalid selector
+  }
+}
+
+function elementSegmentsSignature(rule) {
+  let sig = "";
+  for (const seg of (rule && rule.segments) || []) {
+    if (seg.enabled && seg.type === "element") sig += "" + readElementText(seg.selector);
+  }
+  return sig;
+}
+
+// Element text is rendered by the site (often after load / on SPA nav), so watch
+// the body for changes and re-apply when a watched element's text changes. Only
+// active while the matched rule has an enabled element segment; observing <body>
+// (our bar lives on <html>) avoids reacting to our own DOM writes.
+let elementObserver = null;
+let elementDebounce = null;
+let lastElementSig = "";
+function ensureElementObserver(active) {
+  if (active) {
+    if (elementObserver || !document.body) return;
+    elementObserver = new MutationObserver(() => {
+      clearTimeout(elementDebounce);
+      elementDebounce = setTimeout(() => {
+        if (!appliedRule) return;
+        const sig = elementSegmentsSignature(appliedRule);
+        if (sig !== lastElementSig) {
+          lastElementSig = sig;
+          applyRule(appliedRule);
+        }
+      }, 300);
+    });
+    elementObserver.observe(document.body, { childList: true, characterData: true, subtree: true });
+  } else if (elementObserver) {
+    elementObserver.disconnect();
+    elementObserver = null;
+  }
+}
+
 function evaluateAndApply(rules) {
   const normalized = normalizeRules(rules);
   const matched = findMatchingRule(normalized, window.location.href);
@@ -511,6 +564,10 @@ function evaluateAndApply(rules) {
   const inScope = matched && tabIndicatorApplies(indicatorScope, matched.id);
   setIndicator(inScope && matched.style ? matched.style.backgroundColor : null);
   setTabTitle(matched ? matched.tabTitle : null);
+
+  const hasElementSeg = !!(matched && matched.segments.some((s) => s.enabled && s.type === "element"));
+  lastElementSig = matched ? elementSegmentsSignature(matched) : "";
+  ensureElementObserver(hasElementSeg);
 }
 
 let snoozeTimer = null;

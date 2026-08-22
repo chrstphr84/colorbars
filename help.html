@@ -99,7 +99,8 @@
         <ul>
           <li>A rule's bar can contain multiple text elements ("segments"): plain <strong>Text</strong>, <strong>Page Title</strong>, <strong>Fleet Server Info</strong>, <strong>Fleet Role</strong>, and <strong>Browser Info</strong>. Add as many as you need.</li>
           <li><strong>Fleet Role</strong> shows the logged-in Fleet user's role (Admin, Maintainer, Observer+, …) via the server's <code>/me</code> endpoint using your existing session; it only appears when signed in to a Fleet server.</li>
-          <li><strong>Page Title</strong> shows the page's own title (<code>{title}</code>) and updates as it changes — handy on sites whose sticky-header title gets hidden behind the bar.</li>
+          <li><strong>Page Title</strong> shows the page's own title (<code>{title}</code>, i.e. <code>document.title</code>) and updates as it changes.</li>
+          <li><strong>Sticky Header</strong> shows the text of a page element matched by a CSS selector (<code>{text}</code>), updating live. It defaults to GitHub's sticky issue/PR title — which the bar otherwise hides — and can be pointed at any element on any site. Use this (not Page Title) when you want exactly what a site puts in its sticky header, without the browser-tab suffixes.</li>
           <li>Each segment is placed <strong>Left</strong>, <strong>Center</strong>, or <strong>Right</strong>.</li>
           <li>Segments are placed into independent zones and never overlap.</li>
           <li>Segments sharing a zone stack horizontally, in list order.</li>
