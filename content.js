@@ -476,8 +476,12 @@ function setIndicator(color) {
 
 // ---- Tab title ----------------------------------------------------------
 function setDocTitle(value) {
-  cbManagedTitle = value;
   document.title = value;
+  // Read the value back: the document.title getter strips/collapses whitespace,
+  // so storing the raw string would defeat the loop guard (our own write would
+  // look like an external change and poison realPageTitle). Store what the
+  // getter actually returns so the guard in watchTitle() always matches.
+  cbManagedTitle = document.title;
 }
 
 function applyTabTitle() {
@@ -489,6 +493,10 @@ function applyTabTitle() {
     }
     return;
   }
+  // No real title captured yet (e.g. at document_start before <title> parses).
+  // Applying now would emit a degenerate title (e.g. a bare "#123"); wait for
+  // the real title — the title observer and nav-end capture will re-apply.
+  if (!String(realPageTitle).trim()) return;
   const focused = !document.hidden;
   const issueNum = tabTitleCfg.github ? githubIssueNumber(location.href) : null;
   const next = composeTabTitle(realPageTitle, tabTitleCfg, focused, issueNum);

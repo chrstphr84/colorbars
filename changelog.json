@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.17.6",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Tab Title GitHub prefix no longer replaces the whole tab title with the issue number twice (e.g. \"#50764 #50764\"). The real title is preserved, so it now reads \"#50764 Fix the login bug\" — focused or not, and after a reload.",
+          "Root cause: the browser trims trailing whitespace when reading document.title back, which slipped a title we'd written past our own loop guard and let it stack on itself. The guard now compares the normalized value, the prefix is only applied once the real title is known, and any already-doubled prefix self-heals."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.5",
     "sections": [
       {

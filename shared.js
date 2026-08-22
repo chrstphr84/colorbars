@@ -553,12 +553,14 @@ function githubIssueNumber(href) {
 // prepend/append only apply when the tab is NOT focused (they revert on focus);
 // overwrite and the GitHub issue prefix persist regardless of focus.
 function composeTabTitle(realTitle, cfg, focused, issueNum) {
-  let base = String(realTitle || "");
+  let base = String(realTitle || "").trim();
   const github = !!(cfg && cfg.github && issueNum);
   // Idempotent: drop any issue prefix already on the title so re-applying (or a
   // title we previously set being read back) can't stack it. Only runs on
   // GitHub issue/PR pages, whose real titles never start with "#<number>".
-  if (github) base = base.replace(/^#\d+(?:\s*-)?\s+/, "");
+  // Strips one or more leading "#<num>" groups (with or without a trailing
+  // separator/space), so even a bare "#123" or an already-doubled prefix cleans up.
+  if (github) base = base.replace(/^(?:#\d+\s*-?\s*)+/, "").trim();
   const text = cfg && cfg.text ? String(cfg.text) : "";
   const mode = cfg ? cfg.mode : "off";
   let t = base;
@@ -567,8 +569,11 @@ function composeTabTitle(realTitle, cfg, focused, issueNum) {
   } else if (!focused && text && (mode === "prepend" || mode === "append")) {
     t = mode === "prepend" ? `${text} ${base}` : `${base} ${text}`;
   }
+  t = t.trim();
   if (github) {
-    t = `#${issueNum} ${t}`;
+    // No trailing space when there's no title yet (avoids emitting a bare
+    // "#123 " whose trailing space the document.title getter would strip).
+    t = t ? `#${issueNum} ${t}` : `#${issueNum}`;
   }
   return t;
 }

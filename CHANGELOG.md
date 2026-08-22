@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.6]
+
+### Fixed
+- Tab Title GitHub prefix no longer replaces the whole tab title with the issue number twice (e.g. "#50764 #50764"). The real title is preserved, so it now reads "#50764 Fix the login bug" — focused or not, and after a reload.
+- Root cause: the browser trims trailing whitespace when reading document.title back, which slipped a title we'd written past our own loop guard and let it stack on itself. The guard now compares the normalized value, the prefix is only applied once the real title is known, and any already-doubled prefix self-heals.
+
 ## [1.17.5]
 
 ### Fixed
@@ -195,6 +201,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.6]: #1176
 [1.17.5]: #1175
 [1.17.4]: #1174
 [1.17.3]: #1173
