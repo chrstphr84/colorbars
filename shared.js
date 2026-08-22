@@ -437,13 +437,15 @@ function capitalizeRole(role) {
   return r.charAt(0).toUpperCase() + r.slice(1);
 }
 
-// Compute the display role for a Fleet user object (global_role + teams[].role),
-// mirroring Fleet's generateRole().
+// Compute the display role for a Fleet user object (global_role + teams[].role).
+// Prefer the global role when present (top-level access) — even if the account
+// also has team roles — since this is a "what am I logged in as" indicator.
+// Only fall back to team roles when there's no global role.
 function fleetDisplayRole(user) {
   if (!user || typeof user !== "object") return "";
   const global = user.global_role || null;
+  if (global) return capitalizeRole(global);
   const teams = Array.isArray(user.teams) ? user.teams : [];
-  if (global) return teams.length > 0 ? "Various" : capitalizeRole(global);
   if (teams.length === 0) return "Unassigned";
   if (teams.length === 1) return capitalizeRole(teams[0].role);
   const roles = new Set(teams.map((t) => t && t.role));

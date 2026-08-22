@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.17.2",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Fleet Role now shows the global role (e.g. Admin) when the account has one, even if it also has team roles — instead of \"Various\". Team-role logic still applies to accounts with no global role."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.1",
     "sections": [
       {
