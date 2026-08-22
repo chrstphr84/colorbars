@@ -508,15 +508,17 @@ document.addEventListener("visibilitychange", () => {
 // Watch the page's own <title> changes (SPAs update it without navigating):
 // track the real title, refresh the bar (Page Title segment), and re-apply our
 // tab-title override. Our own writes are ignored via the cbManagedTitle guard.
+let titleObserver = null;
 function watchTitle() {
   const titleEl = document.querySelector("title");
   if (!titleEl) return false;
-  new MutationObserver(() => {
+  titleObserver = new MutationObserver(() => {
     if (document.title === cbManagedTitle) return; // our own write
     realPageTitle = document.title;
     if (appliedRule) applyRule(appliedRule);
     applyTabTitle();
-  }).observe(titleEl, { childList: true, characterData: true, subtree: true });
+  });
+  titleObserver.observe(titleEl, { childList: true, characterData: true, subtree: true });
   return true;
 }
 if (!watchTitle()) {
@@ -592,10 +594,47 @@ function suppress() {
   setTabTitle(null);
 }
 
+// When the extension is reloaded/updated/disabled, an already-injected content
+// script becomes orphaned and its chrome.* calls throw "Extension context
+// invalidated". Detect that and stop our timers/observers so we fail silently
+// (a fresh content script runs on the next full page load).
+let contentTornDown = false;
+let urlPollId = null;
+
+function extensionValid() {
+  try {
+    return !!(chrome && chrome.runtime && chrome.runtime.id);
+  } catch (_) {
+    return false;
+  }
+}
+
+function teardownContent() {
+  if (contentTornDown) return;
+  contentTornDown = true;
+  clearTimeout(snoozeTimer);
+  clearTimeout(elementDebounce);
+  if (urlPollId) clearInterval(urlPollId);
+  if (elementObserver) {
+    try { elementObserver.disconnect(); } catch (_) {}
+    elementObserver = null;
+  }
+  if (titleObserver) {
+    try { titleObserver.disconnect(); } catch (_) {}
+    titleObserver = null;
+  }
+}
+
 function loadAndApply() {
-  chrome.storage.sync.get(
-    [STORAGE_KEY, GLOBAL_KEY, BLOCKLIST_KEY, SNOOZE_KEY, TAB_INDICATOR_KEY, TAB_SCOPE_KEY],
-    (items) => {
+  if (!extensionValid()) {
+    teardownContent();
+    return;
+  }
+  try {
+    chrome.storage.sync.get(
+      [STORAGE_KEY, GLOBAL_KEY, BLOCKLIST_KEY, SNOOZE_KEY, TAB_INDICATOR_KEY, TAB_SCOPE_KEY],
+      (items) => {
+        if (chrome.runtime && chrome.runtime.lastError) return; // context went away mid-call
       if (snoozeTimer) {
         clearTimeout(snoozeTimer);
         snoozeTimer = null;
@@ -625,9 +664,12 @@ function loadAndApply() {
         return;
       }
 
-      evaluateAndApply(items[STORAGE_KEY]);
-    }
-  );
+        evaluateAndApply(items[STORAGE_KEY]);
+      }
+    );
+  } catch (_) {
+    teardownContent(); // context invalidated
+  }
 }
 
 // Re-evaluate on soft (SPA) navigations so the bar and tab indicator follow the
@@ -645,7 +687,7 @@ window.addEventListener("hashchange", onMaybeUrlChange);
 if (window.navigation && typeof window.navigation.addEventListener === "function") {
   window.navigation.addEventListener("navigate", () => setTimeout(onMaybeUrlChange, 0));
 } else {
-  setInterval(onMaybeUrlChange, 1000);
+  urlPollId = setInterval(onMaybeUrlChange, 1000);
 }
 
 loadAndApply();
