@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.3]
+
+### Changed
+- Fleet Role for team-scoped accounts (no global role) now shows the strongest team role held (e.g. Maintainer) instead of "Various".
+
 ## [1.17.2]
 
 ### Changed
@@ -179,6 +184,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.3]: #1173
 [1.17.2]: #1172
 [1.17.1]: #1171
 [1.17.0]: #1170

@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.17.3",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Fleet Role for team-scoped accounts (no global role) now shows the strongest team role held (e.g. Maintainer) instead of \"Various\"."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.2",
     "sections": [
       {

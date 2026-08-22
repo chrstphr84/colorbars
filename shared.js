@@ -437,19 +437,26 @@ function capitalizeRole(role) {
   return r.charAt(0).toUpperCase() + r.slice(1);
 }
 
+// Privilege ranking used to pick a single role for accounts with several team
+// roles (higher = more access).
+const ROLE_RANK = { admin: 6, maintainer: 5, observer_plus: 4, observer: 3, technician: 2, gitops: 1 };
+
 // Compute the display role for a Fleet user object (global_role + teams[].role).
-// Prefer the global role when present (top-level access) — even if the account
-// also has team roles — since this is a "what am I logged in as" indicator.
-// Only fall back to team roles when there's no global role.
+// Prefer the global role when present (top-level access). Otherwise show the
+// strongest team role held — a "what am I logged in as" indicator, so one clean
+// label rather than "Various".
 function fleetDisplayRole(user) {
   if (!user || typeof user !== "object") return "";
   const global = user.global_role || null;
   if (global) return capitalizeRole(global);
   const teams = Array.isArray(user.teams) ? user.teams : [];
-  if (teams.length === 0) return "Unassigned";
-  if (teams.length === 1) return capitalizeRole(teams[0].role);
-  const roles = new Set(teams.map((t) => t && t.role));
-  return roles.size === 1 ? capitalizeRole(teams[0].role) : "Various";
+  const roles = teams.map((t) => t && t.role).filter(Boolean);
+  if (roles.length === 0) return "Unassigned";
+  let best = roles[0];
+  for (const r of roles) {
+    if ((ROLE_RANK[r] || 0) > (ROLE_RANK[best] || 0)) best = r;
+  }
+  return capitalizeRole(best);
 }
 
 // A /me response looks like a Fleet user payload when it carries a user with
