@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.8]
+
+### Fixed
+- Tab Title no longer flickers back to the plain title shortly after a GitHub issue/PR tab loads (then only re-prepending when you click the tab). GitHub swaps out the whole <title> element during hydration, which orphaned our title watcher; we now watch the <head> so the rename survives the swap and stays applied.
+
 ## [1.17.7]
 
 ### Fixed
@@ -206,6 +211,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.8]: #1178
 [1.17.7]: #1177
 [1.17.6]: #1176
 [1.17.5]: #1175

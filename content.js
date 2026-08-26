@@ -517,23 +517,26 @@ document.addEventListener("visibilitychange", () => {
 // track the real title, refresh the bar (Page Title segment), and re-apply our
 // tab-title override. Our own writes are ignored via the cbManagedTitle guard.
 let titleObserver = null;
+// React-based sites (GitHub included) don't mutate the <title> text — they swap
+// out the whole <title> element during hydration. Watching the element itself
+// would leave us observing a detached node (the title reverts and only re-applies
+// on focus). Observing <head> survives the swap: adding a new <title> child fires
+// childList, and later text edits fire characterData.
+function onTitleMaybeChanged() {
+  if (document.title === cbManagedTitle) return; // our own write (normalized read-back)
+  realPageTitle = document.title;
+  if (appliedRule) applyRule(appliedRule);
+  applyTabTitle();
+}
 function watchTitle() {
-  const titleEl = document.querySelector("title");
-  if (!titleEl) return false;
+  const head = document.head || document.querySelector("head");
+  if (!head) return false;
   // Capture the current real title now. On a full page load the <title> is
   // parsed before we can connect, so the observer (which only fires on future
   // changes) would otherwise never see it and realPageTitle would stay "".
-  if (document.title !== cbManagedTitle) {
-    realPageTitle = document.title;
-    applyTabTitle();
-  }
-  titleObserver = new MutationObserver(() => {
-    if (document.title === cbManagedTitle) return; // our own write
-    realPageTitle = document.title;
-    if (appliedRule) applyRule(appliedRule);
-    applyTabTitle();
-  });
-  titleObserver.observe(titleEl, { childList: true, characterData: true, subtree: true });
+  onTitleMaybeChanged();
+  titleObserver = new MutationObserver(onTitleMaybeChanged);
+  titleObserver.observe(head, { childList: true, characterData: true, subtree: true });
   return true;
 }
 if (!watchTitle()) {

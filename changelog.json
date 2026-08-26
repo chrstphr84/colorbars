@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.17.8",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Tab Title no longer flickers back to the plain title shortly after a GitHub issue/PR tab loads (then only re-prepending when you click the tab). GitHub swaps out the whole <title> element during hydration, which orphaned our title watcher; we now watch the <head> so the rename survives the swap and stays applied."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.7",
     "sections": [
       {
