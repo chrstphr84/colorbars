@@ -1098,7 +1098,9 @@ function render() {
       const addType = btn.dataset.action.replace("add-", "");
       btn.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", `new:${addType}`);
-        e.dataTransfer.effectAllowed = "copy";
+        // The zones force dropEffect="move"; effectAllowed must permit move or
+        // the browser resolves the effect to "none" and never fires drop.
+        e.dataTransfer.effectAllowed = "copyMove";
         dndAddType = addType;
         dndDrag = null;
       });

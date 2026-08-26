@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.22.1",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Dragging an \"add element\" button into the mock-up bar now actually adds the element. The drop was being silently rejected by a drag-effect mismatch (the button offered \"copy\" while the zone expected \"move\"), so it looked right but never stuck."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.22.0",
     "sections": [
       {

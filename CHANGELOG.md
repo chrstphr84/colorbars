@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.22.1]
+
+### Fixed
+- Dragging an "add element" button into the mock-up bar now actually adds the element. The drop was being silently rejected by a drag-effect mismatch (the button offered "copy" while the zone expected "move"), so it looked right but never stuck.
+
 ## [1.22.0]
 
 ### Added
@@ -259,6 +264,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.22.1]: #1221
 [1.22.0]: #1220
 [1.21.0]: #1210
 [1.20.0]: #1200
