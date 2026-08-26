@@ -327,29 +327,28 @@
             </label>
             <label>
               Font Size (px)
-              <input data-field="style.fontSize" type="number" min="10" max="32" />
+              <input data-field="style.fontSize" type="number" min="10" max="120" />
             </label>
             <label>
               Letter Spacing (px)
               <input data-field="style.letterSpacing" type="number" min="0" max="10" step="0.1" />
             </label>
 
-            <!-- Row 4: Text Color, Font Style, Font Weight -->
+            <!-- Row 4: Text Color, Font Style -->
             <label>
               Text Color
               <div class="color-field" data-color-field="style.textColor"></div>
             </label>
             <label>
               Font Style
-              <select data-field="style.fontStyle">
-                <option value="normal">normal</option>
-                <option value="italic">italic</option>
+              <select data-role="font-style-combo">
+                <option value="normal">Normal</option>
+                <option value="italic">Italic</option>
+                <option value="bold">Bold</option>
+                <option value="bold italic">Bold Italic</option>
               </select>
             </label>
-            <label>
-              Font Weight
-              <input data-field="style.fontWeight" type="text" placeholder="700" />
-            </label>
+            <div class="grid-spacer" aria-hidden="true"></div>
 
             <!-- Row 5: Text Opacity, Text Transform -->
             <label>
@@ -417,7 +416,7 @@
           <p class="hint tabtitle-warning" style="color: var(--danger)">
             Overwrite replaces the page's title even when the tab is focused, hiding the real title.
           </p>
-          <label class="inline">
+          <label class="inline tabtitle-github">
             <input data-field="tabTitle.github" class="switch" type="checkbox" />
             Prepend GitHub issue/PR number (e.g. <code>#1234 </code>; persists on focus)
           </label>

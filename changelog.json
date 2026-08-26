@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.19.0",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Font Style and Font Weight are now a single Font Style dropdown: Normal, Italic, Bold, Bold Italic. (The granular numeric weight is gone; existing rules map automatically — 600+ reads as Bold.)",
+          "Font Size now goes up to 120px (was 32) to match the maximum bar height; font size is still capped to the bar height on the page.",
+          "The \"Prepend GitHub issue/PR number\" toggle now only appears on rules that target github.com, and has more breathing room above it."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.18.0",
     "sections": [
       {

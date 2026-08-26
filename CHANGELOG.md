@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.19.0]
+
+### Changed
+- Font Style and Font Weight are now a single Font Style dropdown: Normal, Italic, Bold, Bold Italic. (The granular numeric weight is gone; existing rules map automatically — 600+ reads as Bold.)
+- Font Size now goes up to 120px (was 32) to match the maximum bar height; font size is still capped to the bar height on the page.
+- The "Prepend GitHub issue/PR number" toggle now only appears on rules that target github.com, and has more breathing room above it.
+
 ## [1.18.0]
 
 ### Changed
@@ -219,6 +226,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.19.0]: #1190
 [1.18.0]: #1180
 [1.17.8]: #1178
 [1.17.7]: #1177

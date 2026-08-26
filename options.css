@@ -796,6 +796,11 @@ select:disabled {
   opacity: 0.5;
 }
 
+/* GitHub issue-number toggle sits below the Tab Title grid; give it breathing room. */
+.tabtitle-github {
+  margin-top: 14px;
+}
+
 /* "Experimental" badge (e.g. Tab indicator). */
 .badge-experimental {
   font-size: 10px;

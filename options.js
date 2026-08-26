@@ -433,6 +433,44 @@ function coerceRule(rule) {
   return normalizeRules([rule])[0];
 }
 
+// Font Style is presented as one dropdown (Normal / Italic / Bold / Bold Italic)
+// but is stored as two independent CSS values (style.fontWeight + style.fontStyle),
+// so content-script rendering is unchanged.
+function fontStyleIsBold(fontWeight) {
+  const s = String(fontWeight ?? "").trim().toLowerCase();
+  if (s === "bold" || s === "bolder") return true;
+  const n = Number(s);
+  return Number.isFinite(n) && n >= 600;
+}
+function fontStyleComboValue(fontWeight, fontStyle) {
+  const bold = fontStyleIsBold(fontWeight);
+  const italic = String(fontStyle ?? "").toLowerCase() === "italic";
+  if (bold && italic) return "bold italic";
+  if (bold) return "bold";
+  if (italic) return "italic";
+  return "normal";
+}
+function fontStyleComboParts(value) {
+  const v = String(value || "").toLowerCase();
+  return {
+    fontWeight: v.includes("bold") ? "700" : "400",
+    fontStyle: v.includes("italic") ? "italic" : "normal"
+  };
+}
+
+// Whether a rule's match pattern targets github.com (used to gate the GitHub
+// issue-number toggle, which is meaningless off GitHub).
+function ruleTargetsGitHub(rule) {
+  let host;
+  if (rule.matchType === "domain") {
+    host = String(rule.domainPattern || "").trim().replace(/^[a-z]+:\/\//i, "").split("/")[0];
+  } else {
+    host = String(rule.hostPattern || "").trim();
+  }
+  host = host.toLowerCase().replace(/^\*\./, "");
+  return /(^|\.)github\.com$/.test(host);
+}
+
 function summaryMeta(rule) {
   if (rule.matchType === "domain") {
     const pattern = normalizeDomainPattern(rule.domainPattern || "", rule.assumeWildcards !== false);
@@ -495,6 +533,10 @@ function syncVisibility(root, rule) {
   if (ttText) ttText.style.display = ttMode !== "off" ? "flex" : "none";
   const ttWarn = root.querySelector(".tabtitle-warning");
   if (ttWarn) ttWarn.style.display = ttMode === "overwrite" ? "block" : "none";
+
+  // The GitHub issue-number toggle only makes sense on github.com rules.
+  const ghToggle = root.querySelector(".tabtitle-github");
+  if (ghToggle) ghToggle.style.display = ruleTargetsGitHub(rule) ? "" : "none";
 }
 
 function validateRule(rule) {
@@ -877,6 +919,19 @@ function render() {
         save(false);
       });
     });
+
+    // Font Style combo drives style.fontWeight + style.fontStyle together.
+    const fsCombo = shell.querySelector('[data-role="font-style-combo"]');
+    if (fsCombo) {
+      const st = rule.style || {};
+      fsCombo.value = fontStyleComboValue(st.fontWeight, st.fontStyle);
+      fsCombo.addEventListener("input", () => {
+        const parts = fontStyleComboParts(fsCombo.value);
+        setPath(state.rules[idx], "style.fontWeight", parts.fontWeight);
+        setPath(state.rules[idx], "style.fontStyle", parts.fontStyle);
+        save(false);
+      });
+    }
 
     shell.querySelector('[data-action="delete"]').addEventListener("click", () => {
       if (previewRuleId === rule.id) previewRuleId = null;
