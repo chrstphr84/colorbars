@@ -46,8 +46,7 @@
           <li><strong>Enable all rules</strong> — the same master switch as the popup's "All sites".</li>
           <li><strong>Snooze</strong> — temporarily hide all bars for 1 hour or until tomorrow; bars auto-return when the snooze ends.</li>
           <li><strong>Default style for new rules</strong> — height, placement, colors, font, and transform applied to each newly-added rule.</li>
-          <li><strong>Domain blocklist</strong> — one domain per line where Colorbars never shows, even if a rule matches. Supports <code>*</code> wildcards; a bare domain also covers its subdomains.</li>
-          <li><strong>Tab indicator</strong> — replaces the tab's favicon with a solid rounded tile in the matched rule's color, so you can spot flagged tabs at a glance. It appears only on <em>background</em> tabs; the active tab keeps its real favicon so the page you're viewing is never obscured. Extensions can't draw on the tab itself, so this rides on the favicon.</li>
+          <li><strong>Tab indicator</strong> (experimental) — replaces the tab's favicon with a solid rounded tile in the matched rule's color, so you can spot flagged tabs at a glance. It appears only on <em>background</em> tabs; the active tab keeps its real favicon so the page you're viewing is never obscured. Extensions can't draw on the tab itself, so this rides on the favicon. <em>It doesn't work everywhere</em> — some sites (e.g. GitHub, NYTimes) continually rewrite their own favicon, overriding the indicator; it's reliable on sites with a static favicon.</li>
         </ul>
       </section>
 

@@ -796,6 +796,21 @@ select:disabled {
   opacity: 0.5;
 }
 
+/* "Experimental" badge (e.g. Tab indicator). */
+.badge-experimental {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning, #b8860b) 18%, transparent);
+  color: var(--warning, #b8860b);
+  border: 1px solid color-mix(in srgb, var(--warning, #b8860b) 40%, transparent);
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
 /* Help / version footer ------------------------------------------------- */
 .help-section {
   display: flex;

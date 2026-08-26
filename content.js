@@ -650,7 +650,7 @@ function loadAndApply() {
   }
   try {
     chrome.storage.sync.get(
-      [STORAGE_KEY, GLOBAL_KEY, BLOCKLIST_KEY, SNOOZE_KEY, TAB_INDICATOR_KEY, TAB_SCOPE_KEY],
+      [STORAGE_KEY, GLOBAL_KEY, SNOOZE_KEY, TAB_INDICATOR_KEY, TAB_SCOPE_KEY],
       (items) => {
         if (chrome.runtime && chrome.runtime.lastError) return; // context went away mid-call
       if (snoozeTimer) {
@@ -672,13 +672,6 @@ function loadAndApply() {
       if (remaining > 0) {
         suppress();
         snoozeTimer = setTimeout(loadAndApply, Math.min(remaining, 2147483647));
-        return;
-      }
-
-      // Domain blocklist.
-      const url = buildUrlForMatching(window.location.href);
-      if (url && isHostBlocked(items[BLOCKLIST_KEY], url.hostname)) {
-        suppress();
         return;
       }
 
@@ -718,7 +711,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (
     changes[STORAGE_KEY] ||
     changes[GLOBAL_KEY] ||
-    changes[BLOCKLIST_KEY] ||
     changes[SNOOZE_KEY] ||
     changes[TAB_INDICATOR_KEY] ||
     changes[TAB_SCOPE_KEY]

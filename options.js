@@ -918,13 +918,12 @@ function render() {
 
 function load() {
   chrome.storage.sync.get(
-    [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, DEFAULTSTYLE_KEY, BLOCKLIST_KEY, SNOOZE_KEY, FOCUS_KEY],
+    [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, DEFAULTSTYLE_KEY, SNOOZE_KEY, FOCUS_KEY],
     (items) => {
       state.rules = normalizeRules(items[STORAGE_KEY]);
       state.globalEnabled = items[GLOBAL_KEY] !== false;
       state.stash = items[STASH_KEY] && typeof items[STASH_KEY] === "object" ? items[STASH_KEY] : {};
       state.defaults = normalizeDefaults(items[DEFAULTSTYLE_KEY]);
-      globalState.blocklist = Array.isArray(items[BLOCKLIST_KEY]) ? items[BLOCKLIST_KEY] : [];
       globalState.snoozeUntil = Number(items[SNOOZE_KEY]) || 0;
 
       // Hand-off from the popup: expand + scroll to a just-created rule.
@@ -946,21 +945,14 @@ function load() {
 }
 
 /* ----------------------------------------------------- Global section */
-const globalState = { blocklist: [], snoozeUntil: 0 };
+const globalState = { snoozeUntil: 0 };
 const globalToggle = document.getElementById("global-toggle");
 const snoozeActive = document.getElementById("snooze-active");
 const snoozeControls = document.getElementById("snooze-controls");
 const snoozeText = document.getElementById("snooze-text");
 const snoozeMeta = document.getElementById("snooze-meta");
-const blocklistEl = document.getElementById("blocklist");
-const blocklistMeta = document.getElementById("blocklist-meta");
 let globalInited = false;
 let snoozeTick = null;
-
-function updateBlocklistMeta() {
-  const n = globalState.blocklist.length;
-  blocklistMeta.textContent = n === 0 ? "No domains" : `${n} domain${n === 1 ? "" : "s"}`;
-}
 
 function renderGlobalSection() {
   globalToggle.checked = state.globalEnabled;
@@ -998,10 +990,7 @@ function scheduleSnoozeTick() {
 function initGlobalSection() {
   renderGlobalSection();
   scheduleSnoozeTick();
-  if (globalInited) {
-    blocklistEl.value = globalState.blocklist.join("\n");
-    return;
-  }
+  if (globalInited) return;
   globalInited = true;
 
   globalToggle.addEventListener("change", () => {
@@ -1041,17 +1030,6 @@ function initGlobalSection() {
       setPath(state.defaults, path, hex);
       chrome.storage.sync.set({ [DEFAULTSTYLE_KEY]: state.defaults });
     });
-  });
-
-  blocklistEl.value = globalState.blocklist.join("\n");
-  updateBlocklistMeta();
-  blocklistEl.addEventListener("input", () => {
-    globalState.blocklist = blocklistEl.value
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    chrome.storage.sync.set({ [BLOCKLIST_KEY]: globalState.blocklist });
-    updateBlocklistMeta();
   });
 }
 

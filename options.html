@@ -110,21 +110,7 @@
 
           <details class="rule">
             <summary class="rule-summary">
-              <div class="rule-title">Domain blocklist</div>
-              <div class="rule-meta" id="blocklist-meta">No domains</div>
-            </summary>
-            <article class="rule-body">
-              <p class="hint">
-                One domain per line. Colorbars never shows on these, regardless of matching rules. Supports
-                <code>*</code> wildcards; a bare domain also covers its subdomains.
-              </p>
-              <textarea id="blocklist" rows="3" spellcheck="false" placeholder="bank.com&#10;*.private.example.com"></textarea>
-            </article>
-          </details>
-
-          <details class="rule">
-            <summary class="rule-summary">
-              <div class="rule-title">Tab indicator</div>
+              <div class="rule-title">Tab indicator <span class="badge-experimental">Experimental</span></div>
               <div class="rule-meta" id="tab-indicator-meta">Off</div>
             </summary>
             <article class="rule-body">
@@ -135,6 +121,11 @@
               <p class="hint">
                 Replaces the favicon with a solid rounded tile in the rule's color on unfocused tabs. The active tab
                 keeps its real icon, so the page you're viewing is never obscured.
+              </p>
+              <p class="hint">
+                <strong>Experimental — doesn't work everywhere.</strong> Some sites (e.g. GitHub, NYTimes) constantly
+                rewrite their own favicon, which overrides the indicator. It works reliably on sites with a static
+                favicon (e.g. Fleet servers, Google).
               </p>
 
               <div id="tab-indicator-scope" hidden>

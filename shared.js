@@ -130,7 +130,6 @@ const SWATCHES_KEY = "colorbarsSwatchesV1";
 const GLOBAL_KEY = "colorbarsGlobalEnabledV1";
 const STASH_KEY = "colorbarsPrevEnabledV1";
 const DEFAULTSTYLE_KEY = "colorbarsDefaultRuleV1";
-const BLOCKLIST_KEY = "colorbarsBlocklistV1";
 const SNOOZE_KEY = "colorbarsSnoozeUntilV1";
 // Transient hand-off: the popup sets this to a rule id so the options page can
 // open expanded and scrolled to that rule, then clears it.
@@ -224,23 +223,6 @@ function normalizeDefaults(raw) {
     }
   }
   return base;
-}
-
-// ---- Domain blocklist -----------------------------------------------------
-function isHostBlocked(blocklist, hostname) {
-  if (!Array.isArray(blocklist)) return false;
-  const host = String(hostname || "").toLowerCase();
-  if (!host) return false;
-  for (const raw of blocklist) {
-    const entry = String(raw || "").trim().toLowerCase();
-    if (!entry) continue;
-    if (entry.includes("*")) {
-      if (wildcardToRegExp(entry).test(host)) return true;
-    } else if (host === entry || host.endsWith(`.${entry}`)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 const SEGMENT_TYPES = ["text", "fleet", "browser", "pagetitle", "fleetrole", "element"];

@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.18.0]
+
+### Changed
+- Tab indicator is now labelled Experimental: it can't work on every site. Some sites (e.g. GitHub, NYTimes) continually rewrite their own favicon, which overrides the indicator; it's reliable on sites with a static favicon (e.g. Fleet servers, Google).
+
+### Removed
+- Removed the global Domain blocklist. Per-domain exclusions will return later as a per-rule option (so you can exclude specific pages/sections of a domain while a rule still applies to the rest), which is the more useful shape.
+
 ## [1.17.8]
 
 ### Fixed
@@ -211,6 +219,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.18.0]: #1180
 [1.17.8]: #1178
 [1.17.7]: #1177
 [1.17.6]: #1176
