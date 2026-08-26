@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.20.0",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "The rule Preview now reflects Blur: the pinned preview bar frosts the settings content that scrolls behind it, matching how the real bar blurs the page, so you can judge the blur amount while editing."
+        ]
+      },
+      {
+        "label": "Changed",
+        "items": [
+          "Blur now maxes out at 20px (was 50). Backdrop blur becomes mushy well before 50, so the range is now the practical frosted-glass span."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.19.0",
     "sections": [
       {

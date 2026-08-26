@@ -649,6 +649,20 @@ function updatePreview() {
     pointerEvents: "none"
   });
 
+  // Blur — mirror the content script: only meaningful on a translucent bar.
+  // (In the preview this blurs the settings content behind the pinned bar, so
+  // the strength is visible while editing.) Reset when not applicable since the
+  // bar element is reused across updates.
+  const opac = Number(style.backgroundOpacity);
+  const blurPx = Number(style.blur);
+  if (Number.isFinite(blurPx) && blurPx > 0 && Number.isFinite(opac) && opac < 1) {
+    bar.style.backdropFilter = `blur(${blurPx}px)`;
+    bar.style.webkitBackdropFilter = `blur(${blurPx}px)`;
+  } else {
+    bar.style.backdropFilter = "";
+    bar.style.webkitBackdropFilter = "";
+  }
+
   const zones = {};
   ["left", "center", "right"].forEach((name) => {
     const z = document.createElement("div");

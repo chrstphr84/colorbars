@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.20.0]
+
+### Fixed
+- The rule Preview now reflects Blur: the pinned preview bar frosts the settings content that scrolls behind it, matching how the real bar blurs the page, so you can judge the blur amount while editing.
+
+### Changed
+- Blur now maxes out at 20px (was 50). Backdrop blur becomes mushy well before 50, so the range is now the practical frosted-glass span.
+
 ## [1.19.0]
 
 ### Changed
@@ -226,6 +234,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.20.0]: #1200
 [1.19.0]: #1190
 [1.18.0]: #1180
 [1.17.8]: #1178
