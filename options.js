@@ -97,13 +97,32 @@ const SETTINGS_EXPORT_KEYS = [
   TAB_SCOPE_KEY
 ];
 
+// Bake each rule's TRUE enable state into a settings blob. When a device is
+// globally disabled (master switch off / snooze), every rule.enabled is flipped
+// false and the real states live in the stash — resolve from it so export/import
+// preserve what the user actually set, and normalize to globally-enabled with no
+// leftover stash.
+function bakeEnabledStates(src) {
+  const out = { ...src };
+  const rules = Array.isArray(out[STORAGE_KEY]) ? out[STORAGE_KEY] : [];
+  const globallyOn = out[GLOBAL_KEY] !== false;
+  const stash = out[STASH_KEY] && typeof out[STASH_KEY] === "object" ? out[STASH_KEY] : {};
+  out[STORAGE_KEY] = rules.map((r) => ({
+    ...r,
+    enabled: globallyOn ? Boolean(r && r.enabled) : r && r.id in stash ? Boolean(stash[r.id]) : true
+  }));
+  out[GLOBAL_KEY] = true;
+  delete out[STASH_KEY];
+  return out;
+}
+
 function exportSettings() {
   cbStore.get(SETTINGS_EXPORT_KEYS, (items) => {
     const payload = {
       __colorbars: "settings",
       version: chrome.runtime.getManifest().version,
       exportedAt: new Date().toISOString(),
-      data: items
+      data: bakeEnabledStates(items)
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -142,11 +161,14 @@ function importSettingsFromFile(file) {
       confirmLabel: "Import & Replace"
     });
     if (!ok) return;
-    // Only write recognized keys (never arbitrary data from the file).
+    // Resolve real per-rule enable states (handles files exported while globally
+    // disabled), then only write recognized keys — never arbitrary file data.
+    const clean = bakeEnabledStates(data);
     const toSet = {};
     SETTINGS_EXPORT_KEYS.forEach((k) => {
-      if (k in data) toSet[k] = data[k];
+      if (k in clean) toSet[k] = clean[k];
     });
+    toSet[STASH_KEY] = {}; // clear any prior global-disable memory on this device
     cbStore.set(toSet, () => {
       // Reload so every context (theme, swatches, rules, indicator) re-reads cleanly.
       location.reload();

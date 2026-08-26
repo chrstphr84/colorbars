@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.23.1",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Imported rules now keep each rule's enable/disable state. If the export was made while Colorbars was globally disabled (master switch off or snoozed), the real per-rule states are now preserved instead of everything coming in disabled."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.23.0",
     "sections": [
       {

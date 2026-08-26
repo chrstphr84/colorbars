@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.23.1]
+
+### Fixed
+- Imported rules now keep each rule's enable/disable state. If the export was made while Colorbars was globally disabled (master switch off or snoozed), the real per-rule states are now preserved instead of everything coming in disabled.
+
 ## [1.23.0]
 
 ### Added
@@ -281,6 +286,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.23.1]: #1231
 [1.23.0]: #1230
 [1.22.3]: #1223
 [1.22.2]: #1222
