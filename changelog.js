@@ -13,7 +13,7 @@ function resolveTheme(pref) {
 }
 
 function applyStoredTheme() {
-  chrome.storage.sync.get([THEME_KEY], (items) => {
+  cbStore.get([THEME_KEY], (items) => {
     const pref = THEME_VALUES.includes(items[THEME_KEY]) ? items[THEME_KEY] : "auto";
     const resolved = resolveTheme(pref);
     document.documentElement.dataset.theme = resolved;
@@ -24,7 +24,7 @@ function applyStoredTheme() {
 applyStoredTheme();
 prefersDark.addEventListener("change", applyStoredTheme);
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "sync" && changes[THEME_KEY]) applyStoredTheme();
+  if (area === "local" && changes[THEME_KEY]) applyStoredTheme();
 });
 
 /* ---------------------------------------------------------------- Render */

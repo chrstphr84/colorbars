@@ -1,11 +1,11 @@
 importScripts("shared.js");
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.sync.get([STORAGE_KEY], (items) => {
+  cbStore.get([STORAGE_KEY], (items) => {
     const current = normalizeRules(items[STORAGE_KEY]);
     if (current.length > 0) return;
 
-    chrome.storage.sync.set({
+    cbStore.set({
       [STORAGE_KEY]: [
         {
           ...structuredClone(DEFAULT_RULE),

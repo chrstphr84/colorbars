@@ -18,7 +18,7 @@ function resolveTheme(pref) {
 }
 
 function applyStoredTheme() {
-  chrome.storage.sync.get([THEME_KEY], (items) => {
+  cbStore.get([THEME_KEY], (items) => {
     const pref = THEME_VALUES.includes(items[THEME_KEY]) ? items[THEME_KEY] : "auto";
     const resolved = resolveTheme(pref);
     document.documentElement.dataset.theme = resolved;
@@ -70,7 +70,7 @@ let createdRuleId = null;
 let panelState = "collapsed"; // collapsed | create | exists | done
 
 function persist() {
-  chrome.storage.sync.set({
+  cbStore.set({
     [STORAGE_KEY]: state.rules,
     [GLOBAL_KEY]: state.globalEnabled,
     [STASH_KEY]: state.stash
@@ -257,14 +257,14 @@ function createRule() {
 
 function openRuleInOptions(ruleId) {
   if (!ruleId) return;
-  chrome.storage.sync.set({ [FOCUS_KEY]: ruleId }, () => {
+  cbStore.set({ [FOCUS_KEY]: ruleId }, () => {
     chrome.runtime.openOptionsPage();
     window.close();
   });
 }
 
 /* ---------------------------------------------------------------- Load */
-chrome.storage.sync.get(
+cbStore.get(
   [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, SNOOZE_KEY, DEFAULTSTYLE_KEY, SWATCHES_KEY],
   (items) => {
     state.rules = normalizeRules(items[STORAGE_KEY]);
@@ -312,7 +312,7 @@ els.page.addEventListener("change", () => {
 
 els.snoozeResume.addEventListener("click", () => {
   snoozeUntil = 0;
-  chrome.storage.sync.set({ [SNOOZE_KEY]: 0 });
+  cbStore.set({ [SNOOZE_KEY]: 0 });
   render();
 });
 

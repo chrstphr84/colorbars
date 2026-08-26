@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.22.3]
+
+### Fixed
+- Fixed "kQuotaBytesPerItem quota exceeded" errors that silently dropped saves (e.g. after copying rules). Settings now live in chrome.storage.local, which has a multi-megabyte budget and no 8KB-per-item cap, instead of chrome.storage.sync.
+- Existing settings are migrated automatically on first load, so no rules are lost. (Trade-off: settings no longer sync across devices via Chrome sign-in.)
+
 ## [1.22.2]
 
 ### Changed
@@ -269,6 +275,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.22.3]: #1223
 [1.22.2]: #1222
 [1.22.1]: #1221
 [1.22.0]: #1220

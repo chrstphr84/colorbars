@@ -102,7 +102,7 @@ function applyTheme() {
 
 function setTheme(pref) {
   themePref = THEME_VALUES.includes(pref) ? pref : "auto";
-  chrome.storage.sync.set({ [THEME_KEY]: themePref });
+  cbStore.set({ [THEME_KEY]: themePref });
   applyTheme();
 }
 
@@ -125,7 +125,7 @@ let tabIndicatorOn = false;
 let tabScope = { mode: "all", ids: [] };
 
 function persistTabScope() {
-  chrome.storage.sync.set({ [TAB_SCOPE_KEY]: tabScope });
+  cbStore.set({ [TAB_SCOPE_KEY]: tabScope });
 }
 
 // Rebuild the "Applies to" control from the current rules, keeping it in sync as
@@ -175,7 +175,7 @@ function applyTabIndicatorState() {
 
 tabIndicatorToggle.addEventListener("change", () => {
   tabIndicatorOn = tabIndicatorToggle.checked;
-  chrome.storage.sync.set({ [TAB_INDICATOR_KEY]: tabIndicatorOn });
+  cbStore.set({ [TAB_INDICATOR_KEY]: tabIndicatorOn });
   applyTabIndicatorState();
 });
 
@@ -195,7 +195,7 @@ let swatches = [];
 const swatchTrayRefreshers = new Set();
 
 function loadSwatches(done) {
-  chrome.storage.sync.get([SWATCHES_KEY], (items) => {
+  cbStore.get([SWATCHES_KEY], (items) => {
     const stored = items[SWATCHES_KEY];
     swatches = Array.isArray(stored) && stored.length > 0 ? stored.slice(0, MAX_SWATCHES) : [...DEFAULT_SWATCHES];
     if (typeof done === "function") done();
@@ -203,7 +203,7 @@ function loadSwatches(done) {
 }
 
 function persistSwatches() {
-  chrome.storage.sync.set({ [SWATCHES_KEY]: swatches });
+  cbStore.set({ [SWATCHES_KEY]: swatches });
   swatchTrayRefreshers.forEach((fn) => fn());
 }
 
@@ -627,7 +627,7 @@ function save() {
     }
   }
 
-  chrome.storage.sync.set(
+  cbStore.set(
     { [STORAGE_KEY]: next, [GLOBAL_KEY]: state.globalEnabled, [STASH_KEY]: state.stash },
     () => {
       state.rules = next;
@@ -1117,7 +1117,7 @@ function render() {
 }
 
 function load() {
-  chrome.storage.sync.get(
+  cbStore.get(
     [STORAGE_KEY, GLOBAL_KEY, STASH_KEY, DEFAULTSTYLE_KEY, SNOOZE_KEY, FOCUS_KEY],
     (items) => {
       state.rules = normalizeRules(items[STORAGE_KEY]);
@@ -1130,7 +1130,7 @@ function load() {
       const focusId = items[FOCUS_KEY];
       if (focusId && state.rules.some((r) => r.id === focusId)) {
         state.openById[focusId] = true;
-        chrome.storage.sync.remove(FOCUS_KEY);
+        cbStore.remove(FOCUS_KEY);
       }
 
       initGlobalSection();
@@ -1176,7 +1176,7 @@ function renderGlobalSection() {
 
 function setSnooze(until) {
   globalState.snoozeUntil = until;
-  chrome.storage.sync.set({ [SNOOZE_KEY]: until });
+  cbStore.set({ [SNOOZE_KEY]: until });
   renderGlobalSection();
   scheduleSnoozeTick();
 }
@@ -1221,14 +1221,14 @@ function initGlobalSection() {
     input.value = parsePath(state.defaults, path) ?? "";
     input.addEventListener("input", () => {
       setPath(state.defaults, path, input.value);
-      chrome.storage.sync.set({ [DEFAULTSTYLE_KEY]: state.defaults });
+      cbStore.set({ [DEFAULTSTYLE_KEY]: state.defaults });
     });
   });
   document.querySelectorAll("[data-default-color]").forEach((container) => {
     const path = container.getAttribute("data-default-color");
     buildColorPicker(container, parsePath(state.defaults, path) || "#000000", (hex) => {
       setPath(state.defaults, path, hex);
-      chrome.storage.sync.set({ [DEFAULTSTYLE_KEY]: state.defaults });
+      cbStore.set({ [DEFAULTSTYLE_KEY]: state.defaults });
     });
   });
 }
@@ -1303,14 +1303,14 @@ loadSwatches(() => {
 });
 
 function loadTheme() {
-  chrome.storage.sync.get([THEME_KEY], (items) => {
+  cbStore.get([THEME_KEY], (items) => {
     themePref = THEME_VALUES.includes(items[THEME_KEY]) ? items[THEME_KEY] : "auto";
     applyTheme();
   });
 }
 
 function loadTabIndicatorPref() {
-  chrome.storage.sync.get([TAB_INDICATOR_KEY, TAB_SCOPE_KEY], (items) => {
+  cbStore.get([TAB_INDICATOR_KEY, TAB_SCOPE_KEY], (items) => {
     tabIndicatorOn = items[TAB_INDICATOR_KEY] === true; // default off
     const s = items[TAB_SCOPE_KEY];
     tabScope = {

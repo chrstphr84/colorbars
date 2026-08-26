@@ -138,6 +138,50 @@ const TAB_INDICATOR_KEY = "colorbarsTabIndicatorV1";
 // Which rules the tab indicator applies to: { mode: "all" | "selected", ids: [] }.
 const TAB_SCOPE_KEY = "colorbarsTabIndicatorScopeV1";
 
+// Storage lives in chrome.storage.local, not sync: sync has an 8KB-per-item cap
+// (QUOTA_BYTES_PER_ITEM) that the rules array can exceed, which made writes fail
+// with "kQuotaBytesPerItem quota exceeded". local has a multi-MB budget and no
+// per-item cap. cbStore mirrors the chrome.storage.sync API (get/set/remove) and
+// performs a one-time migration of any pre-existing sync data into local.
+const CB_MIGRATION_FLAG = "cbStorageMigratedV1";
+const cbStore = {
+  _migrated: false,
+  _ensure(done) {
+    if (this._migrated) return done();
+    const self = this;
+    try {
+      chrome.storage.local.get(CB_MIGRATION_FLAG, (local) => {
+        if (!chrome.runtime.lastError && local && local[CB_MIGRATION_FLAG]) {
+          self._migrated = true;
+          return done();
+        }
+        // Copy everything currently in sync into local, then mark migrated.
+        chrome.storage.sync.get(null, (sync) => {
+          const payload = Object.assign({}, chrome.runtime.lastError ? {} : sync, {
+            [CB_MIGRATION_FLAG]: true
+          });
+          chrome.storage.local.set(payload, () => {
+            self._migrated = true;
+            done();
+          });
+        });
+      });
+    } catch (_) {
+      // No chrome.storage (shouldn't happen in extension contexts): fail open.
+      done();
+    }
+  },
+  get(keys, cb) {
+    this._ensure(() => chrome.storage.local.get(keys, cb));
+  },
+  set(obj, cb) {
+    this._ensure(() => chrome.storage.local.set(obj, cb));
+  },
+  remove(keys, cb) {
+    this._ensure(() => chrome.storage.local.remove(keys, cb));
+  }
+};
+
 // True when the tab indicator should apply to a given rule id under a scope.
 function tabIndicatorApplies(scope, ruleId) {
   if (!scope || scope.mode !== "selected") return true; // default: all rules

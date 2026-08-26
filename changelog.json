@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.22.3",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Fixed \"kQuotaBytesPerItem quota exceeded\" errors that silently dropped saves (e.g. after copying rules). Settings now live in chrome.storage.local, which has a multi-megabyte budget and no 8KB-per-item cap, instead of chrome.storage.sync.",
+          "Existing settings are migrated automatically on first load, so no rules are lost. (Trade-off: settings no longer sync across devices via Chrome sign-in.)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.22.2",
     "sections": [
       {

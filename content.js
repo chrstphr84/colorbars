@@ -638,7 +638,7 @@ function loadAndApply() {
     return;
   }
   try {
-    chrome.storage.sync.get(
+    cbStore.get(
       [STORAGE_KEY, GLOBAL_KEY, SNOOZE_KEY, TAB_INDICATOR_KEY, TAB_SCOPE_KEY],
       (items) => {
         if (chrome.runtime && chrome.runtime.lastError) return; // context went away mid-call
@@ -696,7 +696,7 @@ if (document.readyState === "loading") {
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "sync") return;
+  if (area !== "local") return;
   if (
     changes[STORAGE_KEY] ||
     changes[GLOBAL_KEY] ||
