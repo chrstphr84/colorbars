@@ -47,6 +47,18 @@
           <li><strong>Snooze</strong> — temporarily hide all bars for 1 hour or until tomorrow; bars auto-return when the snooze ends.</li>
           <li><strong>Default style for new rules</strong> — height, placement, colors, font, and transform applied to each newly-added rule.</li>
           <li><strong>Tab indicator</strong> (experimental) — replaces the tab's favicon with a solid rounded tile in the matched rule's color, so you can spot flagged tabs at a glance. It appears only on <em>background</em> tabs; the active tab keeps its real favicon so the page you're viewing is never obscured. Extensions can't draw on the tab itself, so this rides on the favicon. <em>It doesn't work everywhere</em> — some sites (e.g. GitHub, NYTimes) continually rewrite their own favicon, overriding the indicator; it's reliable on sites with a static favicon.</li>
+          <li><strong>Backup &amp; restore</strong> — export all your settings to a JSON file, or import one. See the section below.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Backup &amp; Restore (move settings between devices)</h2>
+        <ul>
+          <li>Colorbars stores your rules and settings <strong>locally in this browser profile</strong> (<code>chrome.storage.local</code>). They are <em>not</em> synced across devices through your Google/Chrome account.</li>
+          <li>Copying the browser's storage files by hand is not supported — that data is an internal database shared with other extensions, not a portable file. Use Export/Import instead.</li>
+          <li><strong>Export:</strong> open Settings → Global → <strong>Backup &amp; restore</strong> → <strong>Export settings</strong>. Your browser downloads a file named <code>colorbars-settings-YYYY-MM-DD.json</code> containing every rule, your default style, saved swatches, theme, and toggles.</li>
+          <li><strong>Import (on another device or after reinstalling):</strong> install Colorbars, open Settings → Global → <strong>Backup &amp; restore</strong> → <strong>Import settings</strong>, and choose the exported JSON file. Confirm the prompt — importing <strong>replaces</strong> the current rules and settings with the ones in the file, then the page reloads.</li>
+          <li>The export is a plain JSON file: keep it somewhere safe as a backup, or move it between machines however you like (cloud drive, AirDrop, USB, etc.).</li>
         </ul>
       </section>
 

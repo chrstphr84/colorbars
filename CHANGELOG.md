@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.23.0]
+
+### Added
+- Backup & restore: a new Global panel with Export and Import buttons. Export downloads a JSON file of all your rules and settings; Import loads one on another device or after a reinstall (it replaces the current settings, then reloads).
+- Since settings are stored per-browser-profile and don't sync across devices, this is the supported way to move them — the Help page documents the process.
+
 ## [1.22.3]
 
 ### Fixed
@@ -275,6 +281,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.23.0]: #1230
 [1.22.3]: #1223
 [1.22.2]: #1222
 [1.22.1]: #1221

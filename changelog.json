@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.23.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Backup & restore: a new Global panel with Export and Import buttons. Export downloads a JSON file of all your rules and settings; Import loads one on another device or after a reinstall (it replaces the current settings, then reloads).",
+          "Since settings are stored per-browser-profile and don't sync across devices, this is the supported way to move them — the Help page documents the process."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.22.3",
     "sections": [
       {

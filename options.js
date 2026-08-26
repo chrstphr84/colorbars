@@ -81,6 +81,80 @@ function scrollToRule(id) {
   if (shell) shell.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+/* --------------------------------------------------- Backup & restore */
+// Every persisted settings key (transient/internal keys are intentionally left
+// out of exports). Storage is per-profile (chrome.storage.local), so this is how
+// settings move between devices.
+const SETTINGS_EXPORT_KEYS = [
+  STORAGE_KEY,
+  GLOBAL_KEY,
+  STASH_KEY,
+  DEFAULTSTYLE_KEY,
+  SNOOZE_KEY,
+  THEME_KEY,
+  SWATCHES_KEY,
+  TAB_INDICATOR_KEY,
+  TAB_SCOPE_KEY
+];
+
+function exportSettings() {
+  cbStore.get(SETTINGS_EXPORT_KEYS, (items) => {
+    const payload = {
+      __colorbars: "settings",
+      version: chrome.runtime.getManifest().version,
+      exportedAt: new Date().toISOString(),
+      data: items
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `colorbars-settings-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast("Settings exported");
+  });
+}
+
+function importSettingsFromFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(String(reader.result));
+    } catch (_) {
+      showToast("Couldn't read that file — not valid JSON.", true, 3000);
+      return;
+    }
+    // Accept either our wrapped export ({data:{…}}) or a bare data object.
+    const data = parsed && parsed.data && typeof parsed.data === "object" ? parsed.data : parsed;
+    if (!data || typeof data !== "object" || !(STORAGE_KEY in data)) {
+      showToast("That doesn't look like a Colorbars settings export.", true, 3000);
+      return;
+    }
+    const count = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY].length : 0;
+    const ok = await askConfirm({
+      title: "Import settings?",
+      message: `This replaces your current rules and settings with the imported ones (${count} rule${count === 1 ? "" : "s"}).`,
+      confirmLabel: "Import & Replace"
+    });
+    if (!ok) return;
+    // Only write recognized keys (never arbitrary data from the file).
+    const toSet = {};
+    SETTINGS_EXPORT_KEYS.forEach((k) => {
+      if (k in data) toSet[k] = data[k];
+    });
+    cbStore.set(toSet, () => {
+      // Reload so every context (theme, swatches, rules, indicator) re-reads cleanly.
+      location.reload();
+    });
+  };
+  reader.readAsText(file);
+}
+
 /* ----------------------------------------------------------------- Theme */
 const themeToggle = document.getElementById("theme-toggle");
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -1214,6 +1288,20 @@ function initGlobalSection() {
     });
   });
   document.getElementById("snooze-resume").addEventListener("click", () => setSnooze(0));
+
+  // Backup & restore (export/import settings JSON).
+  const exportBtn = document.getElementById("export-settings");
+  const importBtn = document.getElementById("import-settings-btn");
+  const importFile = document.getElementById("import-settings-file");
+  if (exportBtn) exportBtn.addEventListener("click", exportSettings);
+  if (importBtn && importFile) {
+    importBtn.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", () => {
+      const f = importFile.files && importFile.files[0];
+      importFile.value = ""; // allow re-importing the same file later
+      importSettingsFromFile(f);
+    });
+  }
 
   // Default-style fields + color pickers (bound to state.defaults).
   document.querySelectorAll("[data-default-field]").forEach((input) => {

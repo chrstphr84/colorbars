@@ -142,6 +142,25 @@
               </div>
             </article>
           </details>
+
+          <details class="rule">
+            <summary class="rule-summary">
+              <div class="rule-title">Backup &amp; restore</div>
+              <div class="rule-meta">Export / import settings</div>
+            </summary>
+            <article class="rule-body">
+              <p class="hint">
+                Settings are stored locally in this browser profile and don't sync across devices. Use Export to save
+                a JSON file of all your rules and settings, then Import it in Colorbars on another device (or after a
+                reinstall). Importing replaces your current rules and settings.
+              </p>
+              <div class="row row-wrap">
+                <button type="button" class="secondary" id="export-settings">Export settings</button>
+                <button type="button" class="secondary" id="import-settings-btn">Import settings</button>
+                <input type="file" id="import-settings-file" accept="application/json,.json" hidden />
+              </div>
+            </article>
+          </details>
         </div>
       </section>
 
