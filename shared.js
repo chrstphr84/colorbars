@@ -23,7 +23,6 @@ const DEFAULT_FLEET_SEGMENT = {
   enabled: false,
   label: "Fleet server",
   template: "Fleet {version} · {branch}",
-  token: "",
   justify: "right"
 };
 
@@ -260,8 +259,8 @@ function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
   merged.label = String(merged.label || labels[type]);
   if (type === "fleet") {
     merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
-    merged.token = String(merged.token || "");
     delete merged.text;
+    delete merged.token; // legacy: the manual API token was removed
   } else if (type === "element") {
     merged.template = String(merged.template || DEFAULT_ELEMENT_SEGMENT.template);
     merged.selector = String(merged.selector || DEFAULT_ELEMENT_SEGMENT.selector);
@@ -287,8 +286,10 @@ function normalizeSegments(rule, ruleIndex) {
     const legacyText = rule && rule.style ? rule.style.text : "";
     source = [{ ...DEFAULT_TEXT_SEGMENT, text: legacyText || "" }];
   }
-  const normalized = source.map((segment, i) => normalizeSegment(segment, ruleIndex, i));
-  return normalized.length > 0 ? normalized : [structuredClone(DEFAULT_TEXT_SEGMENT)];
+  // Allow zero segments: if a rule's last segment is removed, the bar simply
+  // shows no text. (Previously this re-injected a default Text, which made
+  // "add an element to an empty rule" produce a phantom extra Text segment.)
+  return source.map((segment, i) => normalizeSegment(segment, ruleIndex, i));
 }
 
 function normalizeRules(rawRules) {

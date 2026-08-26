@@ -39,6 +39,48 @@ function showToast(message, isError = false, durationMs = 1000) {
   }, durationMs);
 }
 
+/* ------------------------------------------------------- Confirm modal */
+// Promise-based confirmation dialog (Cancel / <confirmLabel>). Resolves true on
+// confirm, false on cancel / backdrop click / Escape.
+function askConfirm({ title, message, confirmLabel } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById("confirm-overlay");
+    const okBtn = document.getElementById("confirm-ok");
+    const cancelBtn = document.getElementById("confirm-cancel");
+    if (!overlay || !okBtn || !cancelBtn) {
+      resolve(window.confirm(message || title || "Are you sure?"));
+      return;
+    }
+    document.getElementById("confirm-title").textContent = title || "Are you sure?";
+    document.getElementById("confirm-msg").textContent = message || "";
+    okBtn.textContent = confirmLabel || "Confirm";
+    overlay.hidden = false;
+
+    const cleanup = (result) => {
+      overlay.hidden = true;
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      overlay.removeEventListener("mousedown", onBackdrop);
+      document.removeEventListener("keydown", onKey);
+      resolve(result);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onBackdrop = (e) => { if (e.target === overlay) cleanup(false); };
+    const onKey = (e) => { if (e.key === "Escape") cleanup(false); };
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+    overlay.addEventListener("mousedown", onBackdrop);
+    document.addEventListener("keydown", onKey);
+    cancelBtn.focus();
+  });
+}
+
+function scrollToRule(id) {
+  const shell = listEl.querySelector(`[data-rule-id="${id}"]`);
+  if (shell) shell.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 /* ----------------------------------------------------------------- Theme */
 const themeToggle = document.getElementById("theme-toggle");
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -544,6 +586,9 @@ function validateRule(rule) {
   const h = Number(rule.barHeight);
   if (!Number.isFinite(h) || h < 16 || h > 120) return "Bar height must be between 16 and 120.";
 
+  const fs = Number(rule.style && rule.style.fontSize);
+  if (!Number.isFinite(fs) || fs < 10 || fs > 120) return "Font size must be between 10 and 120.";
+
   if (rule.matchType === "domain") {
     if (!rule.domainPattern.trim()) return "Domain pattern cannot be empty.";
     return "";
@@ -708,12 +753,37 @@ function segmentDisplayText(seg) {
 // Tracks the segment currently being dragged (from a mock-bar chip or a segment
 // card handle) so a drop OUTSIDE any zone can remove it. Cleared on drag end.
 let dndDrag = null;
+let dndAddType = null; // set while dragging an "add element" button into the bar
 function endDndDrag() {
   dndDrag = null;
   document.body.classList.remove("cb-drag-remove");
 }
 function ruleIdxById(id) {
   return state.rules.findIndex((r) => r.id === id);
+}
+
+// Create a new segment of `type` in `zone`, inserted before `refSegId` (or after
+// the last segment already in that zone). Used when an "add element" button is
+// dragged into a mock-bar zone.
+function addSegmentAt(idx, type, zone, refSegId) {
+  if (!SEGMENT_TYPES.includes(type) || !JUSTIFY_VALUES.includes(zone)) return;
+  const seg = structuredClone(defaultSegmentForType(type));
+  seg.id = genSegId();
+  seg.enabled = true;
+  seg.justify = zone;
+  const arr = state.rules[idx].segments;
+  let insertAt;
+  if (refSegId) {
+    insertAt = arr.findIndex((s) => s.id === refSegId);
+  } else {
+    let last = -1;
+    arr.forEach((s, i) => { if (s.justify === zone) last = i; });
+    insertAt = last === -1 ? arr.length : last + 1;
+  }
+  if (insertAt < 0) insertAt = arr.length;
+  arr.splice(insertAt, 0, seg);
+  render();
+  save(true);
 }
 
 function renderDnd(shell, rule) {
@@ -874,10 +944,14 @@ function renderSegments(shell, rule, idx) {
     zone.addEventListener("drop", (e) => {
       e.preventDefault();
       zone.classList.remove("drag-over");
-      const segId = e.dataTransfer.getData("text/plain");
-      const ref = refChipBefore(zone, e.clientX, segId);
+      const data = e.dataTransfer.getData("text/plain");
+      const ref = refChipBefore(zone, e.clientX, data);
       clearInsertMarks();
-      if (segId) placeSegment(idx, segId, zone.dataset.zone, ref);
+      if (data && data.startsWith("new:")) {
+        addSegmentAt(idx, data.slice(4), zone.dataset.zone, ref);
+      } else if (data) {
+        placeSegment(idx, data, zone.dataset.zone, ref);
+      }
     });
   });
 
@@ -965,11 +1039,35 @@ function render() {
       });
     }
 
-    shell.querySelector('[data-action="delete"]').addEventListener("click", () => {
+    shell.querySelector('[data-action="delete"]').addEventListener("click", async () => {
+      const ok = await askConfirm({
+        title: "Delete rule?",
+        message: `“${rule.label || "Untitled rule"}” will be permanently removed.`,
+        confirmLabel: "Confirm Delete"
+      });
+      if (!ok) return;
+      const i = state.rules.findIndex((r) => r.id === rule.id);
+      if (i === -1) return;
       if (previewRuleId === rule.id) previewRuleId = null;
-      state.rules.splice(idx, 1);
+      state.rules.splice(i, 1);
       render();
       save(true);
+    });
+
+    // Copy: duplicate the rule (fresh ids), insert right after it, and jump to it.
+    shell.querySelector('[data-action="copy"]').addEventListener("click", () => {
+      const src = state.rules.find((r) => r.id === rule.id);
+      if (!src) return;
+      const copy = structuredClone(src);
+      copy.id = genId();
+      copy.label = `${src.label || "Rule"} copy`;
+      (copy.segments || []).forEach((s) => { s.id = genSegId(); });
+      const at = state.rules.findIndex((r) => r.id === rule.id) + 1;
+      state.rules.splice(at, 0, copy);
+      state.openById[copy.id] = true;
+      render();
+      save(true);
+      scrollToRule(copy.id);
     });
 
     // Temporary per-rule preview (not persisted; only one at a time).
@@ -993,6 +1091,19 @@ function render() {
     shell.querySelector('[data-action="add-pagetitle"]').addEventListener("click", () => addSegment(idx, "pagetitle"));
     shell.querySelector('[data-action="add-fleetrole"]').addEventListener("click", () => addSegment(idx, "fleetrole"));
     shell.querySelector('[data-action="add-element"]').addEventListener("click", () => addSegment(idx, "element"));
+
+    // Also allow dragging an "add" button into a mock-bar zone to place it there.
+    shell.querySelectorAll('[data-action^="add-"]').forEach((btn) => {
+      btn.draggable = true;
+      const addType = btn.dataset.action.replace("add-", "");
+      btn.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", `new:${addType}`);
+        e.dataTransfer.effectAllowed = "copy";
+        dndAddType = addType;
+        dndDrag = null;
+      });
+      btn.addEventListener("dragend", () => { dndAddType = null; });
+    });
 
     syncVisibility(shell, rule);
     renderSegments(shell, rule, idx);
@@ -1140,6 +1251,7 @@ addButton.addEventListener("click", () => {
   state.openById[rule.id] = true;
   render();
   save(true);
+  scrollToRule(rule.id);
 });
 
 // Drag-to-remove: dropping a dragged chip/segment anywhere OUTSIDE a drop zone

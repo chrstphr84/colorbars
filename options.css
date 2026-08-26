@@ -810,6 +810,47 @@ body.cb-drag-remove .dnd-chip.dragging {
   margin-top: 14px;
 }
 
+/* Confirmation modal (e.g. delete a rule). */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 20px;
+}
+.confirm-overlay[hidden] {
+  display: none;
+}
+.confirm-box {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  max-width: 380px;
+  width: 100%;
+  padding: 20px;
+}
+.confirm-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.confirm-msg {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 18px;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 /* "Experimental" badge (e.g. Tab indicator). */
 .badge-experimental {
   font-size: 10px;

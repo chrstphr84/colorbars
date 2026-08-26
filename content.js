@@ -11,46 +11,35 @@ let realPageTitle = document.title;
 let tabTitleCfg = null; // matched rule's tabTitle, or null
 let cbManagedTitle = null; // the value we last wrote to document.title (loop guard)
 
-// Per-origin cache of Fleet /version lookups so each tab fetches at most once
-// per distinct token. state: "pending" | "ready" | "none".
+// Per-origin cache of Fleet /version lookups so each tab fetches at most once.
+// state: "pending" | "ready" | "none".
 const fleetCache = new Map();
 
-function fleetCacheKey(token) {
-  return `${location.origin}::${token || ""}`;
-}
-
-async function fetchFleetInfo(token) {
-  // With a token, try the authenticated API first (works even when the public
-  // endpoint is blocked), then fall back to the unauthenticated /version.
-  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-  const urls = token
-    ? [`${location.origin}/api/latest/fleet/version`, `${location.origin}/version`]
-    : [`${location.origin}/version`];
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { headers, credentials: "omit", cache: "no-store" });
-      if (!res.ok) continue;
+async function fetchFleetInfo() {
+  // The public /version endpoint identifies a Fleet server with no auth needed.
+  try {
+    const res = await fetch(`${location.origin}/version`, { credentials: "omit", cache: "no-store" });
+    if (res.ok) {
       const data = await res.json();
       if (isFleetVersionInfo(data)) return data;
-    } catch (_) {
-      // Network error / non-JSON: treat as "not a Fleet server here" and move on.
     }
+  } catch (_) {
+    // Network error / non-JSON: treat as "not a Fleet server here".
   }
   return null;
 }
 
-// Returns the cache entry for this token, kicking off a one-time fetch when the
+// Returns the cache entry for this origin, kicking off a one-time fetch when the
 // origin has not been probed yet. onReady runs once the lookup resolves so the
 // caller can re-render with the now-known server info.
-function getFleetInfo(token, onReady) {
-  const key = fleetCacheKey(token);
+function getFleetInfo(onReady) {
+  const key = location.origin;
   const cached = fleetCache.get(key);
   if (cached) return cached;
 
   const entry = { state: "pending", info: null };
   fleetCache.set(key, entry);
-  fetchFleetInfo(token).then((info) => {
+  fetchFleetInfo().then((info) => {
     fleetCache.set(key, { state: info ? "ready" : "none", info });
     if (typeof onReady === "function") onReady();
   });
@@ -209,7 +198,7 @@ function resolveSegments(rule, onFleetReady) {
   for (const seg of rule.segments || []) {
     if (!seg || !seg.enabled) continue;
     if (seg.type === "fleet") {
-      const entry = getFleetInfo(seg.token, onFleetReady);
+      const entry = getFleetInfo(onFleetReady);
       if (entry.state === "ready") {
         const text = formatFleetTemplate(seg.template, entry.info);
         if (text) resolved.push({ justify: seg.justify, text: transformLabelText(text, transform) });

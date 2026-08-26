@@ -285,6 +285,9 @@ chrome.storage.sync.get(
 
       if (supported) {
         setState("collapsed");
+        // A rule already covers this page → the button edits it instead of
+        // offering to create a duplicate.
+        if (matchedRuleId) els.toggle.textContent = "Edit rule for this page ▸";
       } else {
         els.toggle.disabled = true;
         els.toggle.textContent = "Can't add a bar to this page";
@@ -315,6 +318,11 @@ els.snoozeResume.addEventListener("click", () => {
 
 els.toggle.addEventListener("click", () => {
   if (!supported) return;
+  // If a rule already covers this page, jump straight to editing it.
+  if (matchedRuleId) {
+    openRuleInOptions(matchedRuleId);
+    return;
+  }
   if (panelState === "collapsed") openAccordion();
   else setState("collapsed");
 });

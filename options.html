@@ -161,6 +161,17 @@
 
     <div id="toast" class="toast" aria-live="polite"></div>
 
+    <div id="confirm-overlay" class="confirm-overlay" hidden>
+      <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div class="confirm-title" id="confirm-title">Are you sure?</div>
+        <div class="confirm-msg" id="confirm-msg"></div>
+        <div class="confirm-actions">
+          <button type="button" class="secondary" id="confirm-cancel">Cancel</button>
+          <button type="button" class="danger" id="confirm-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
+
     <template id="rule-template">
       <details class="rule" data-role="rule-shell">
         <summary class="rule-summary">
@@ -180,7 +191,10 @@
                 Preview
               </label>
             </div>
-            <button type="button" class="danger" data-action="delete">Delete</button>
+            <div class="row">
+              <button type="button" class="secondary" data-action="copy">Copy</button>
+              <button type="button" class="danger" data-action="delete">Delete</button>
+            </div>
           </div>
 
           <label>
@@ -371,8 +385,8 @@
           <details class="rule-section" data-section="text">
           <summary class="section-summary">Bar Text</summary>
           <p class="dnd-help" data-role="dnd-help">
-            Drag each text element into a zone to place it. Drag elements within a zone to reorder them. Drag a chip
-            out of the bar to remove it.
+            Add an element with a button below, or drag a button into a zone to place it there. Drag chips between or
+            within zones to move and reorder them, and drag a chip out of the bar to remove it.
           </p>
           <div class="dnd-bar" data-role="dnd-bar">
             <div class="dnd-zone" data-zone="left"><span class="zone-label">Left</span></div>
@@ -470,14 +484,6 @@
             Placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>,
             <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>. Shows only on tabs
             whose server is detected as Fleet (via <code>/version</code>).
-          </p>
-          <label class="full">
-            API Token (optional)
-            <input data-seg-field="token" type="password" autocomplete="off" placeholder="Bearer token for authenticated /api/latest/fleet/version" />
-          </label>
-          <p class="hint">
-            Only needed if the public <code>/version</code> endpoint is unavailable. Stored locally and never shown
-            in plain text.
           </p>
         </div>
       </div>

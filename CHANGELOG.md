@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.22.0]
+
+### Added
+- Copy Rule: a Copy button next to Delete duplicates a rule (with its own fresh IDs), drops it right below the original, and jumps to it.
+- Deleting a rule now asks for confirmation (Cancel / Confirm Delete) to prevent accidental loss.
+- Adding a rule now scrolls to and expands the new rule, so it's obvious one was created even when the list is long.
+- You can add a bar-text element by dragging its button straight into a Left/Center/Right zone of the mock-up bar (in addition to clicking it).
+
+### Fixed
+- The toolbar popup no longer offers "Create rule for this page" when a rule already covers the page — the button becomes "Edit rule for this page" and opens that rule.
+- Font size is now validated like bar height: a value above 120 is rejected instead of silently persisting.
+- Adding the first element to a rule with no elements now adds only the element you picked, instead of also creating a stray Text element.
+
+### Removed
+- Removed the Fleet Server Info API token field — the public /version endpoint is used and needs no token.
+
 ## [1.21.0]
 
 ### Changed
@@ -243,6 +259,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.22.0]: #1220
 [1.21.0]: #1210
 [1.20.0]: #1200
 [1.19.0]: #1190

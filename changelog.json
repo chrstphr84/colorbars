@@ -1,5 +1,33 @@
 [
   {
+    "version": "1.22.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Copy Rule: a Copy button next to Delete duplicates a rule (with its own fresh IDs), drops it right below the original, and jumps to it.",
+          "Deleting a rule now asks for confirmation (Cancel / Confirm Delete) to prevent accidental loss.",
+          "Adding a rule now scrolls to and expands the new rule, so it's obvious one was created even when the list is long.",
+          "You can add a bar-text element by dragging its button straight into a Left/Center/Right zone of the mock-up bar (in addition to clicking it)."
+        ]
+      },
+      {
+        "label": "Fixed",
+        "items": [
+          "The toolbar popup no longer offers \"Create rule for this page\" when a rule already covers the page — the button becomes \"Edit rule for this page\" and opens that rule.",
+          "Font size is now validated like bar height: a value above 120 is rejected instead of silently persisting.",
+          "Adding the first element to a rule with no elements now adds only the element you picked, instead of also creating a stray Text element."
+        ]
+      },
+      {
+        "label": "Removed",
+        "items": [
+          "Removed the Fleet Server Info API token field — the public /version endpoint is used and needs no token."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.21.0",
     "sections": [
       {
