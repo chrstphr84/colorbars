@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.21.0",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Bar Text: removed the per-segment Justification dropdown. Placement is set entirely by dragging a segment into the Left/Center/Right zone of the mock-up bar.",
+          "Each segment's main field (Text, or Display Template) now sits beside its Label where the Justification dropdown used to be, saving vertical space."
+        ]
+      },
+      {
+        "label": "Added",
+        "items": [
+          "Remove a segment by dragging its chip out of the mock-up bar and releasing (the chip turns red to confirm). The segment's Delete button still works too."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.0",
     "sections": [
       {

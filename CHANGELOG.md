@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.21.0]
+
+### Changed
+- Bar Text: removed the per-segment Justification dropdown. Placement is set entirely by dragging a segment into the Left/Center/Right zone of the mock-up bar.
+- Each segment's main field (Text, or Display Template) now sits beside its Label where the Justification dropdown used to be, saving vertical space.
+
+### Added
+- Remove a segment by dragging its chip out of the mock-up bar and releasing (the chip turns red to confirm). The segment's Delete button still works too.
+
 ## [1.20.0]
 
 ### Fixed
@@ -234,6 +243,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.21.0]: #1210
 [1.20.0]: #1200
 [1.19.0]: #1190
 [1.18.0]: #1180

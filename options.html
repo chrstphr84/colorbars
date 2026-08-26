@@ -371,7 +371,8 @@
           <details class="rule-section" data-section="text">
           <summary class="section-summary">Bar Text</summary>
           <p class="dnd-help" data-role="dnd-help">
-            Drag each text element into a zone to place it. Drag elements within a zone to reorder them.
+            Drag each text element into a zone to place it. Drag elements within a zone to reorder them. Drag a chip
+            out of the bar to remove it.
           </p>
           <div class="dnd-bar" data-role="dnd-bar">
             <div class="dnd-zone" data-zone="left"><span class="zone-label">Left</span></div>
@@ -440,14 +441,6 @@
             <input data-seg-field="label" type="text" placeholder="Text" />
           </label>
           <label>
-            Justification
-            <select data-seg-field="justify">
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
-          <label class="full">
             Text
             <input data-seg-field="text" type="text" placeholder="STAGING" />
           </label>
@@ -470,14 +463,6 @@
             <input data-seg-field="label" type="text" placeholder="Fleet server" />
           </label>
           <label>
-            Justification
-            <select data-seg-field="justify">
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
-          <label class="full">
             Display Template
             <input data-seg-field="template" type="text" placeholder="Fleet {version} · {branch}" />
           </label>
@@ -513,14 +498,6 @@
             <input data-seg-field="label" type="text" placeholder="Browser" />
           </label>
           <label>
-            Justification
-            <select data-seg-field="justify">
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
-          <label class="full">
             Display Template
             <input data-seg-field="template" type="text" placeholder="{browser} {version}" />
           </label>
@@ -548,20 +525,12 @@
             <input data-seg-field="label" type="text" placeholder="Sticky header" />
           </label>
           <label>
-            Justification
-            <select data-seg-field="justify">
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
+            Display Template
+            <input data-seg-field="template" type="text" placeholder="{text}" />
           </label>
           <label class="full">
             CSS Selector
             <input data-seg-field="selector" type="text" spellcheck="false" placeholder='[class*="StickyHeaderTitle-module__stickyTitleLink"]' />
-          </label>
-          <label class="full">
-            Display Template
-            <input data-seg-field="template" type="text" placeholder="{text}" />
           </label>
           <p class="hint">
             Shows the text of the first element matching the CSS selector (<code>{text}</code>), updating as the page
@@ -587,14 +556,6 @@
             <input data-seg-field="label" type="text" placeholder="Fleet role" />
           </label>
           <label>
-            Justification
-            <select data-seg-field="justify">
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
-          <label class="full">
             Display Template
             <input data-seg-field="template" type="text" placeholder="{role}" />
           </label>
@@ -622,14 +583,6 @@
             <input data-seg-field="label" type="text" placeholder="Page title" />
           </label>
           <label>
-            Justification
-            <select data-seg-field="justify">
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
-          <label class="full">
             Display Template
             <input data-seg-field="template" type="text" placeholder="{title}" />
           </label>

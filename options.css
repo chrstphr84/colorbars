@@ -701,7 +701,8 @@ select:disabled {
   gap: 12px;
 }
 
-.segment-body label.full {
+.segment-body label.full,
+.segment-body .hint {
   grid-column: 1 / -1;
 }
 
@@ -794,6 +795,14 @@ select:disabled {
 
 .dnd-chip.dragging {
   opacity: 0.5;
+}
+
+/* While dragging a chip outside any zone, signal that releasing removes it. */
+body.cb-drag-remove .dnd-chip.dragging {
+  background: var(--danger);
+  color: #fff;
+  opacity: 0.85;
+  text-decoration: line-through;
 }
 
 /* GitHub issue-number toggle sits below the Tab Title grid; give it breathing room. */

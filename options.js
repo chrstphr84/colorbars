@@ -705,6 +705,17 @@ function segmentDisplayText(seg) {
   return seg.text || "Text";
 }
 
+// Tracks the segment currently being dragged (from a mock-bar chip or a segment
+// card handle) so a drop OUTSIDE any zone can remove it. Cleared on drag end.
+let dndDrag = null;
+function endDndDrag() {
+  dndDrag = null;
+  document.body.classList.remove("cb-drag-remove");
+}
+function ruleIdxById(id) {
+  return state.rules.findIndex((r) => r.id === id);
+}
+
 function renderDnd(shell, rule) {
   const bar = shell.querySelector('[data-role="dnd-bar"]');
   bar.querySelectorAll(".dnd-chip").forEach((c) => c.remove());
@@ -724,8 +735,12 @@ function renderDnd(shell, rule) {
       e.dataTransfer.setData("text/plain", seg.id);
       e.dataTransfer.effectAllowed = "move";
       chip.classList.add("dragging");
+      dndDrag = { ruleId: rule.id, segId: seg.id };
     });
-    chip.addEventListener("dragend", () => chip.classList.remove("dragging"));
+    chip.addEventListener("dragend", () => {
+      chip.classList.remove("dragging");
+      endDndDrag();
+    });
     zone.appendChild(chip);
   });
 
@@ -821,11 +836,14 @@ function renderSegments(shell, rule, idx) {
       save(true);
     });
 
-    // Drag handle lets the whole segment be dropped into a zone.
+    // Drag handle lets the whole segment be dropped into a zone (or out to remove).
     const handle = segEl.querySelector(".seg-drag");
     handle.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", seg.id);
+      e.dataTransfer.effectAllowed = "move";
+      dndDrag = { ruleId: rule.id, segId: seg.id };
     });
+    handle.addEventListener("dragend", endDndDrag);
 
     container.appendChild(frag);
   });
@@ -1122,6 +1140,39 @@ addButton.addEventListener("click", () => {
   state.openById[rule.id] = true;
   render();
   save(true);
+});
+
+// Drag-to-remove: dropping a dragged chip/segment anywhere OUTSIDE a drop zone
+// deletes it. While outside a zone, flag the body so the dragged chip reads as
+// "will be removed". Drops on a zone are handled by that zone (move/reorder).
+function dndOverZone(e) {
+  return e.target instanceof Element && e.target.closest(".dnd-zone");
+}
+document.addEventListener("dragover", (e) => {
+  if (!dndDrag) return;
+  if (dndOverZone(e)) {
+    document.body.classList.remove("cb-drag-remove");
+    return;
+  }
+  e.preventDefault(); // allow a drop outside the zones
+  if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  document.body.classList.add("cb-drag-remove");
+});
+document.addEventListener("drop", (e) => {
+  if (!dndDrag || dndOverZone(e)) return; // zone drop handles its own case
+  e.preventDefault();
+  const { ruleId, segId } = dndDrag;
+  const idx = ruleIdxById(ruleId);
+  if (idx !== -1) {
+    const segs = state.rules[idx].segments;
+    const i = segs.findIndex((s) => s.id === segId);
+    if (i !== -1) {
+      segs.splice(i, 1);
+      render();
+      save(true);
+    }
+  }
+  endDndDrag();
 });
 
 /* ------------------------------------------------------------- Bootstrap */
