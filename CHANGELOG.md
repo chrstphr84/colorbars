@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.17.7]
+
+### Fixed
+- Tab Title (and the Page Title bar segment) now work on a full page load, not just after an in-page navigation. The page's real title is captured when the title observer connects, so on a freshly-opened GitHub issue tab the issue number is actually prepended (e.g. "#50648 …") instead of showing the plain title.
+
 ## [1.17.6]
 
 ### Fixed
@@ -201,6 +206,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.17.7]: #1177
 [1.17.6]: #1176
 [1.17.5]: #1175
 [1.17.4]: #1174

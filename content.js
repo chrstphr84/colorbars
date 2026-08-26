@@ -520,6 +520,13 @@ let titleObserver = null;
 function watchTitle() {
   const titleEl = document.querySelector("title");
   if (!titleEl) return false;
+  // Capture the current real title now. On a full page load the <title> is
+  // parsed before we can connect, so the observer (which only fires on future
+  // changes) would otherwise never see it and realPageTitle would stay "".
+  if (document.title !== cbManagedTitle) {
+    realPageTitle = document.title;
+    applyTabTitle();
+  }
   titleObserver = new MutationObserver(() => {
     if (document.title === cbManagedTitle) return; // our own write
     realPageTitle = document.title;

@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.17.7",
+    "sections": [
+      {
+        "label": "Fixed",
+        "items": [
+          "Tab Title (and the Page Title bar segment) now work on a full page load, not just after an in-page navigation. The page's real title is captured when the title observer connects, so on a freshly-opened GitHub issue tab the issue number is actually prepended (e.g. \"#50648 …\") instead of showing the plain title."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.6",
     "sections": [
       {
