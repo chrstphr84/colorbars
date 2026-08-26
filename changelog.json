@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.22.2",
+    "sections": [
+      {
+        "label": "Changed",
+        "items": [
+          "Labelled Snooze as Experimental."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.22.1",
     "sections": [
       {
