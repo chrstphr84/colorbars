@@ -497,12 +497,14 @@
           </label>
           <label>
             Display Template
-            <input data-seg-field="template" type="text" placeholder="Fleet {version} · {branch}" />
+            <input data-seg-field="template" type="text" placeholder="Fleet {fleet_version} · {branch} @{commit}" />
           </label>
           <p class="hint">
-            Placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>,
-            <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>. Shows only on tabs
-            whose server is detected as Fleet (via <code>/version</code>).
+            Placeholders: <code>{fleet_version}</code> (clean server version; empty on dev builds),
+            <code>{branch}</code>, <code>{commit}</code>, <code>{commits_ahead}</code>, and the raw
+            <code>{version}</code>, <code>{revision}</code>, <code>{go_version}</code>,
+            <code>{build_date}</code>, <code>{build_user}</code>. Separators next to an empty placeholder
+            are tidied away. Shows only on tabs whose server is detected as Fleet (via <code>/version</code>).
           </p>
         </div>
       </div>

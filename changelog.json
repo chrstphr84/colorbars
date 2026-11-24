@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.25.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Fleet Server Info now parses the server version into cleaner placeholders: {fleet_version} (a clean Fleet server version), {commit} (short commit SHA), and {commits_ahead} (commits since the nearest tag), alongside the existing raw fields.",
+          "Separators next to an empty placeholder are tidied away, so the default template stays readable whether or not every field is present."
+        ]
+      },
+      {
+        "label": "Changed",
+        "items": [
+          "Fleet Server Info no longer shows a dev build's raw `git describe` string as the version. Fleet stamps its version from the nearest repo tag, which on main/dev builds is often a fleetd component tag (e.g. fleet-desktop-macos-v1.6.0-494-gd4e4cab2a6) — not the Fleet version. {fleet_version} now stays empty on such builds and the default template falls back to branch + commit (e.g. \"Fleet · main @d4e4cab2a6\"); release builds still show the version. Existing Fleet Server Info segments using the old default template upgrade automatically; custom templates are left alone, and raw {version} is still available."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.24.0",
     "sections": [
       {

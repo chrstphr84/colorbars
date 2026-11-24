@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.25.0]
+
+### Added
+- Fleet Server Info now parses the server version into cleaner placeholders: {fleet_version} (a clean Fleet server version), {commit} (short commit SHA), and {commits_ahead} (commits since the nearest tag), alongside the existing raw fields.
+- Separators next to an empty placeholder are tidied away, so the default template stays readable whether or not every field is present.
+
+### Changed
+- Fleet Server Info no longer shows a dev build's raw `git describe` string as the version. Fleet stamps its version from the nearest repo tag, which on main/dev builds is often a fleetd component tag (e.g. fleet-desktop-macos-v1.6.0-494-gd4e4cab2a6) — not the Fleet version. {fleet_version} now stays empty on such builds and the default template falls back to branch + commit (e.g. "Fleet · main @d4e4cab2a6"); release builds still show the version. Existing Fleet Server Info segments using the old default template upgrade automatically; custom templates are left alone, and raw {version} is still available.
+
 ## [1.24.0]
 
 ### Added
@@ -294,6 +303,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.25.0]: #1250
 [1.24.0]: #1240
 [1.23.1]: #1231
 [1.23.0]: #1230

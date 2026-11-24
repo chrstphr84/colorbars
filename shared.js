@@ -14,18 +14,27 @@ const DEFAULT_TEXT_SEGMENT = {
 };
 
 // A dynamic segment that shows the version/branch of the Fleet server the tab
-// is pointed at. {version}, {branch}, {revision}, {go_version}, {build_date}
-// and {build_user} placeholders are substituted from the server's public
-// /version response (Fleet 4.x), or from GET /api/latest/fleet/version using the
-// tab's signed-in session (Fleet 5, where /version is private and returns 410).
+// is pointed at, substituted from the server's public /version response (Fleet
+// 4.x) or from GET /api/latest/fleet/version using the tab's signed-in session
+// (Fleet 5, where /version is private and returns 410).
+//
+// Placeholders: the raw server fields {version}, {branch}, {revision},
+// {go_version}, {build_date}, {build_user}, plus parsed convenience fields
+// {fleet_version} (a clean server semver, empty on dev builds — see
+// parseFleetVersion), {commit} (short SHA) and {commits_ahead}. The default
+// prefers {fleet_version} so a dev build's `git describe` string (which latches
+// onto the nearest repo tag, often a fleetd component tag) never masquerades as
+// the Fleet version; it falls back to branch + commit when there is no clean
+// server version.
 const DEFAULT_FLEET_SEGMENT = {
   id: "",
   type: "fleet",
   enabled: false,
   label: "Fleet server",
-  template: "Fleet {version} · {branch}",
+  template: "Fleet {fleet_version} · {branch} @{commit}",
   justify: "right"
 };
+const LEGACY_FLEET_TEMPLATE = "Fleet {version} · {branch}";
 
 // A dynamic segment that shows the current tab's browser name and version, read
 // from the user agent. {browser}, {version} and {major} placeholders.
@@ -303,7 +312,11 @@ function normalizeSegment(rawSegment, ruleIndex, segmentIndex) {
   };
   merged.label = String(merged.label || labels[type]);
   if (type === "fleet") {
-    merged.template = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
+    let tpl = String(merged.template || DEFAULT_FLEET_SEGMENT.template);
+    // Upgrade segments still on the old {version} default so an existing Fleet
+    // segment picks up the cleaner parsed output; leave customized templates be.
+    if (tpl === LEGACY_FLEET_TEMPLATE) tpl = DEFAULT_FLEET_SEGMENT.template;
+    merged.template = tpl;
     delete merged.text;
     delete merged.token; // legacy: the manual API token was removed
   } else if (type === "element") {
@@ -407,14 +420,79 @@ function isFleetVersionInfo(info) {
   );
 }
 
-// Substitute {version}/{branch}/etc. placeholders in a fleet segment template.
+// Pull a Fleet server's `version` string apart. Fleet stamps it from
+// `git describe --tags`, so it is a clean semver on release builds
+// ("4.93.1", "4.93.1-RC.…") but a describe string on dev/main builds
+// ("<tag>-<commits>-g<sha>"), where <tag> is the nearest repo tag — often a
+// fleetd component tag ("fleet-desktop-macos-v1.6.0-494-gd4e4cab2a6"), whose
+// embedded semver is NOT the Fleet server version. Returns:
+//   fleet_version — a clean server semver, or "" when none can be trusted
+//                   (bare semver or a "fleet-v…" tag only; component tags → "")
+//   commit        — short commit SHA (from the describe suffix, else revision)
+//   commits_ahead — commits since the base tag ("" when not a describe string)
+function parseFleetVersion(info) {
+  const safe = info && typeof info === "object" ? info : {};
+  const raw = typeof safe.version === "string" ? safe.version : "";
+  const revision = typeof safe.revision === "string" ? safe.revision : "";
+
+  let base = raw;
+  let commitsAhead = "";
+  let describeSha = "";
+  const describe = raw.match(/^(.*?)-(\d+)-g([0-9a-f]{6,40})(?:-dirty)?$/i);
+  if (describe) {
+    base = describe[1];
+    commitsAhead = describe[2];
+    describeSha = describe[3];
+  }
+
+  // Only a bare semver or a "fleet-v…" server tag counts as the Fleet version.
+  // A component tag ("fleet-desktop-…", "orbit-…", "fleetctl-…") does not.
+  let fleetVersion = "";
+  const serverTag = base.match(/^(?:fleet-v|v)?(\d+\.\d+\.\d+[^\s]*)$/i);
+  if (serverTag) fleetVersion = serverTag[1];
+
+  const commit = describeSha || revision.slice(0, 9);
+  return { fleet_version: fleetVersion, commit, commits_ahead: commitsAhead };
+}
+
+// Tidy a filled fleet template: drop separators and "@" markers orphaned by an
+// empty placeholder (e.g. no {fleet_version} on a dev build), then collapse
+// whitespace. Keeps the default readable whether or not every field is present.
+function tidyFleetText(text) {
+  return String(text)
+    .replace(/@(?=\s|$)/g, "") // "@" with no commit after it
+    .replace(/(?:\s*·\s*){2,}/g, " · ") // collapsed runs: " ·  · " -> " · "
+    .replace(/^(?:\s*·\s*)+/, "") // leading separator
+    .replace(/(?:\s*·\s*)+$/, "") // trailing separator
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+// Substitute {version}/{branch}/{fleet_version}/{commit}/etc. placeholders in a
+// fleet segment template, then tidy separators left by any empty placeholder.
 function formatFleetTemplate(template, info) {
   const tpl = String(template || DEFAULT_FLEET_SEGMENT.template);
   const safe = info && typeof info === "object" ? info : {};
-  return tpl.replace(/\{(version|branch|revision|go_version|build_date|build_user)\}/g, (_, key) => {
-    const value = safe[key];
-    return value === undefined || value === null ? "" : String(value);
-  });
+  const parsed = parseFleetVersion(safe);
+  const fields = {
+    version: safe.version,
+    branch: safe.branch,
+    revision: safe.revision,
+    go_version: safe.go_version,
+    build_date: safe.build_date,
+    build_user: safe.build_user,
+    fleet_version: parsed.fleet_version,
+    commit: parsed.commit,
+    commits_ahead: parsed.commits_ahead
+  };
+  const filled = tpl.replace(
+    /\{(version|branch|revision|go_version|build_date|build_user|fleet_version|commit|commits_ahead)\}/g,
+    (_, key) => {
+      const value = fields[key];
+      return value === undefined || value === null ? "" : String(value);
+    }
+  );
+  return tidyFleetText(filled);
 }
 
 // Identify the browser + version from a user-agent string. Chromium-based

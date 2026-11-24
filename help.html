@@ -118,7 +118,7 @@
           <li>Click any text in the bar to copy it to the clipboard (it briefly shows "Copied").</li>
           <li>Use the per-rule drag-and-drop mock-up to drag any segment (by its chip or the <code>⠿</code> handle) into a zone, and drag segments within a zone to reorder them.</li>
           <li><strong>Remove</strong> a segment by dragging its chip out of the mock-up bar and releasing (the chip turns red), or with the segment's Delete button.</li>
-          <li>Tip: to show version and branch in different places, add two Fleet Server Info segments — e.g. one templated <code>{version}</code> on the left and another <code>{branch}</code> on the right.</li>
+          <li>Tip: to show version and branch in different places, add two Fleet Server Info segments — e.g. one templated <code>{fleet_version}</code> on the left and another <code>{branch}</code> on the right.</li>
         </ul>
       </section>
 
@@ -127,7 +127,9 @@
         <ul>
           <li>Add a <strong>Fleet Server Info</strong> segment to show the running Fleet server's version and branch in the bar.</li>
           <li>The extension detects a Fleet server on any domain by reading <code>&lt;origin&gt;/version</code> and checking its response shape, so the value can differ per tab. On Fleet 5 (where <code>/version</code> is private) it falls back to <code>/api/latest/fleet/version</code> using your signed-in session, so the version shows only when the tab is logged in.</li>
-          <li>The display template supports placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>, <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>.</li>
+          <li>The display template supports parsed placeholders — <code>{fleet_version}</code> (a clean Fleet server version), <code>{commit}</code> (short commit SHA), <code>{commits_ahead}</code> (commits since the nearest tag) — plus the raw server fields <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>, <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>.</li>
+          <li>Fleet stamps its <code>{version}</code> from <code>git describe</code>, so <strong>release builds</strong> report a clean semver but <strong>dev/main builds</strong> report a describe string off the nearest repo tag — often a fleetd component tag (e.g. <code>fleet-desktop-macos-v1.6.0-494-gd4e4cab2a6</code>), whose embedded number is <em>not</em> the Fleet version. <code>{fleet_version}</code> therefore stays empty on such builds; the default template falls back to branch + commit. Use raw <code>{version}</code> if you want the exact describe string.</li>
+          <li>Separators (<code>·</code>, <code>@</code>) sitting next to an empty placeholder are tidied away automatically, so the default stays readable on both release and dev builds.</li>
           <li>The segment only renders on tabs whose server is detected as Fleet; otherwise it shows nothing.</li>
         </ul>
       </section>
