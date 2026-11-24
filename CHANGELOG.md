@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project aims to follow [Semantic Versioning](https://semver.org/): a **minor**
 bump for a feature (or batch of features), a **patch** bump for tweaks and fixes.
 
+## [1.24.0]
+
+### Added
+- Fleet Server Info now works on Fleet 5, which made the public /version endpoint private (it returns 410). On a signed-in tab the segment falls back to the authenticated /api/latest/fleet/version using your existing session; Fleet 4.x servers still show the version with no login, and signed-out Fleet 5 tabs show nothing.
+
+### Changed
+- Hardened Fleet session-token handling: the token is sent only as an Authorization header (never as cookies) to the same Fleet origin, and the plain-HTTP `token` cookie is read only on http:// origins — so Colorbars won't pick up unrelated `token` cookies on other HTTPS sites. The token is read at request time and never stored.
+
 ## [1.23.1]
 
 ### Fixed
@@ -286,6 +294,7 @@ bump for a feature (or batch of features), a **patch** bump for tweaks and fixes
 - Per-rule top bar with Domain Pattern and URL Components matching.
 - Per-rule text, style, height, and placement; collapsible rule list and in-extension help.
 
+[1.24.0]: #1240
 [1.23.1]: #1231
 [1.23.0]: #1230
 [1.22.3]: #1223

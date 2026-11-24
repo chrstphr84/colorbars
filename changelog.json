@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.24.0",
+    "sections": [
+      {
+        "label": "Added",
+        "items": [
+          "Fleet Server Info now works on Fleet 5, which made the public /version endpoint private (it returns 410). On a signed-in tab the segment falls back to the authenticated /api/latest/fleet/version using your existing session; Fleet 4.x servers still show the version with no login, and signed-out Fleet 5 tabs show nothing."
+        ]
+      },
+      {
+        "label": "Changed",
+        "items": [
+          "Hardened Fleet session-token handling: the token is sent only as an Authorization header (never as cookies) to the same Fleet origin, and the plain-HTTP `token` cookie is read only on http:// origins — so Colorbars won't pick up unrelated `token` cookies on other HTTPS sites. The token is read at request time and never stored."
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.23.1",
     "sections": [
       {

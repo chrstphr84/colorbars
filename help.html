@@ -126,7 +126,7 @@
         <h2>Fleet Server Detection</h2>
         <ul>
           <li>Add a <strong>Fleet Server Info</strong> segment to show the running Fleet server's version and branch in the bar.</li>
-          <li>The extension detects a Fleet server on any domain by reading <code>&lt;origin&gt;/version</code> and checking its response shape, so the value can differ per tab.</li>
+          <li>The extension detects a Fleet server on any domain by reading <code>&lt;origin&gt;/version</code> and checking its response shape, so the value can differ per tab. On Fleet 5 (where <code>/version</code> is private) it falls back to <code>/api/latest/fleet/version</code> using your signed-in session, so the version shows only when the tab is logged in.</li>
           <li>The display template supports placeholders: <code>{version}</code>, <code>{branch}</code>, <code>{revision}</code>, <code>{go_version}</code>, <code>{build_date}</code>, <code>{build_user}</code>.</li>
           <li>The segment only renders on tabs whose server is detected as Fleet; otherwise it shows nothing.</li>
         </ul>

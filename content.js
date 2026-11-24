@@ -16,7 +16,8 @@ let cbManagedTitle = null; // the value we last wrote to document.title (loop gu
 const fleetCache = new Map();
 
 async function fetchFleetInfo() {
-  // The public /version endpoint identifies a Fleet server with no auth needed.
+  // Fleet 4.x exposes an unauthenticated /version, so try it first: those servers
+  // show the version with no login.
   try {
     const res = await fetch(`${location.origin}/version`, { credentials: "omit", cache: "no-store" });
     if (res.ok) {
@@ -24,7 +25,26 @@ async function fetchFleetInfo() {
       if (isFleetVersionInfo(data)) return data;
     }
   } catch (_) {
-    // Network error / non-JSON: treat as "not a Fleet server here".
+    // Network error / non-JSON: fall through to the authenticated endpoint.
+  }
+
+  // Fleet 5 removed the public /version (it returns 410) to keep the server
+  // version private, so it now lives behind GET /api/latest/fleet/version. Use
+  // the tab's existing session token if there is one; stay empty when logged out.
+  const token = fleetAuthToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${location.origin}/api/latest/fleet/version`, {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: "omit",
+      cache: "no-store"
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (isFleetVersionInfo(data)) return data;
+    }
+  } catch (_) {
+    // 401 / network / non-JSON: stay empty.
   }
   return null;
 }
@@ -51,10 +71,17 @@ function getFleetInfo(onReady) {
 // header, not the cookie, so we read the token and send it as a Bearer header.
 function fleetAuthToken() {
   const c = document.cookie || "";
-  const host = c.match(/(?:^|;\s*)__Host-token=([^;]+)/); // HTTPS
+  const host = c.match(/(?:^|;\s*)__Host-token=([^;]+)/); // HTTPS: Secure, host-locked
   if (host) return decodeURIComponent(host[1]);
-  const plain = c.match(/(?:^|;\s*)token=([^;]+)/); // HTTP
-  return plain ? decodeURIComponent(plain[1]) : "";
+  // The __Host- prefix requires Secure, so Fleet can only use a plain `token`
+  // cookie over HTTP. `token` is a common name elsewhere, so only read it on
+  // http: origins — this avoids picking up unrelated token cookies on the
+  // HTTPS web while still supporting local HTTP Fleet dev servers.
+  if (location.protocol === "http:") {
+    const plain = c.match(/(?:^|;\s*)token=([^;]+)/);
+    if (plain) return decodeURIComponent(plain[1]);
+  }
+  return "";
 }
 
 // Logged-in Fleet user's role via the authenticated /me endpoint. Fetched at
@@ -65,7 +92,8 @@ function getFleetRole(onReady) {
   fleetRoleCache = { state: "pending", role: "" };
   const token = fleetAuthToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-  fetch(`${location.origin}/api/latest/fleet/me`, { credentials: "include", headers, cache: "no-store" })
+  // Fleet authenticates by the Authorization header only, so don't send cookies.
+  fetch(`${location.origin}/api/latest/fleet/me`, { credentials: "omit", headers, cache: "no-store" })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       fleetRoleCache = isFleetMeResponse(data)

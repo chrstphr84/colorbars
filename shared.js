@@ -15,8 +15,9 @@ const DEFAULT_TEXT_SEGMENT = {
 
 // A dynamic segment that shows the version/branch of the Fleet server the tab
 // is pointed at. {version}, {branch}, {revision}, {go_version}, {build_date}
-// and {build_user} placeholders are substituted from the server's /version
-// response (or the authenticated API when a token is supplied).
+// and {build_user} placeholders are substituted from the server's public
+// /version response (Fleet 4.x), or from GET /api/latest/fleet/version using the
+// tab's signed-in session (Fleet 5, where /version is private and returns 410).
 const DEFAULT_FLEET_SEGMENT = {
   id: "",
   type: "fleet",
